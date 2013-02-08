@@ -1,9 +1,19 @@
+bin/verse
 Build.PL
 Changes
 lib/Verse.pm
+lib/Verse/Object/Base.pm
+lib/Verse/Object/Blog.pm
+lib/Verse/Object/Page.pm
+lib/Verse/Theme.pm
+lib/Verse/Tools.pm
+lib/Verse/Utils.pm
 MANIFEST			This list of files
+META.json
+META.yml
 README
 t/00-load.t
+t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t

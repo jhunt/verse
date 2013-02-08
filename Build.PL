@@ -14,8 +14,7 @@ my $builder = Module::Build->new(
     requires => {
         'perl' => 5.006,
     },
-    add_to_cleanup      => [ 'Verse-*' ],
-    create_makefile_pl => 'traditional',
+    add_to_cleanup      => [ 'Verse-*', '*.deb', '*.rpm' ],
 );
 
 $builder->create_build_script();
