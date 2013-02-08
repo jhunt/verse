@@ -21,6 +21,7 @@ my $CONFIG = undef;
 sub qualify_path
 {
 	my ($path) = @_;
+	return unless $path;
 	return $path if substr($path, 0, 1) eq '/';
 	return "$ENV{PWD}/$path";
 }

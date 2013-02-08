@@ -12,7 +12,6 @@ my $builder = Module::Build->new(
         'Test::More' => 0,
     },
     requires => {
-        'perl' => 5.006,
     },
     add_to_cleanup      => [ 'Verse-*', '*.deb', '*.rpm' ],
 );
