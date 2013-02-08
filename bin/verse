@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+
+use Verse::Tools;
+
+if (@ARGV == 0) {
+	render;
+	exit 0;
+}
+
+if ($ARGV[0] == 'new') {
+	system("mkdir .verse");
+	exit 0;
+}
+
+print "USAGE: $0 [new]\n";
+exit 1;
