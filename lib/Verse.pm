@@ -12,7 +12,7 @@ our @EXPORT = qw/
 use YAML qw/LoadFile/;
 use Hash::Merge qw/merge/;
 
-our $VERSION = '0.01';
+our $VERSION = '0.5';
 
 our $ROOT = $ENV{PWD};
 
