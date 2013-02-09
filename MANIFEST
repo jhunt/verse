@@ -7,8 +7,6 @@ lib/Verse/Object/Page.pm
 lib/Verse/Theme.pm
 lib/Verse/Utils.pm
 MANIFEST			This list of files
-META.json
-META.yml
 README
 t/00-load.t
 t/05-verse.t

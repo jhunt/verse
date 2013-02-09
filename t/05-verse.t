@@ -10,8 +10,6 @@ BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 
 
 { # verse config function
-	local $Verse::ROOT = $Verse::ROOT;
-
 	if (exists $ENV{PWD}) {
 		is($Verse::ROOT, $ENV{PWD},
 			"Verse defaults to PWD for ROOT");
@@ -34,7 +32,6 @@ BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 }
 
 { # parse_config_string helper method (INTERNAL)
-	local $Verse::ROOT = $Verse::ROOT;
 	my $config;
 
 	$Verse::ROOT = '/u/sites/example.com';
@@ -83,7 +80,6 @@ EOF
 }
 
 { # rhyme - prints a bunch of stuff to stdout
-	local $Verse::ROOT = $Verse::ROOT;
 	$Verse::ROOT = 't/data/root/good';
 
 	cmp_deeply(verse, verse,
