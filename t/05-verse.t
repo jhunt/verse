@@ -2,23 +2,113 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Deep;
+use Test::Exception;
+use Test::Output;
 
 BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 
-{ # qualify_path
-	my $PWD = $ENV{PWD};
-	is(Verse::qualify_path("a/path/to/stuff"),
-		"$PWD/a/path/to/stuff",
-		"Qualify paths per current working directory");
 
-	is(Verse::qualify_path(undef),
-		undef, "qualify(undef) yields undef");
-	is(Verse::qualify_path(''),
-		undef, "qualify('') yields undef");
+{ # verse config function
+	local $Verse::ROOT = $Verse::ROOT;
 
-	is(Verse::qualify_path('/etc/passwd'),
-		'/etc/passwd',
-		"Qualifying absolute paths is a no-op");
+	is($Verse::ROOT, $ENV{PWD},
+		"Verse defaults to PWD for ROOT");
+	ok(!-d "$ENV{PWD}/.verse",
+		"$ENV{PWD}/.verse should not exist");
+
+	throws_ok { verse } qr/No \.verse directory/,
+		'verse fails if .verse directory does not exist';
+
+	$Verse::ROOT = 't/data/root/empty';
+	throws_ok { verse } qr/site\.yml: No such file/,
+		'verse fails if it cannot find .verse/site.yml';
+
+	$Verse::ROOT = 't/data/root/badyaml';
+	throws_ok { verse } qr/Failed to parse .*\/.verse\/site\.yml/,
+		'verse fails if it cannot parse .verse/site.yml';
+
+}
+
+{ # parse_config_string helper method (INTERNAL)
+	local $Verse::ROOT = $Verse::ROOT;
+	my $config;
+
+	$Verse::ROOT = '/u/sites/example.com';
+
+	$config = <<EOF;
+site:
+  title: Default Settings
+EOF
+	cmp_deeply(Verse::parse_config_string($config), {
+			site => {
+				title => 'Default Settings',
+				theme => 'default', # DEFAULT
+			},
+			paths => { # ALL DEFAULT
+				site  => '/u/sites/example.com/htdocs',
+				root  => '/u/sites/example.com/.verse',
+				data  => '/u/sites/example.com/.verse/data',
+				theme => '/u/sites/example.com/.verse/theme/default', # AUTO-SET
+			}
+		}, "Verse provides sane defaults");
+
+	$config = <<EOF;
+site:
+  title: Overrides
+  url:   http://www.example.com
+  theme: override
+paths:
+  site: site_root
+  root: .web
+  data: site_data
+  theme: /srv/www/themes/override
+EOF
+	cmp_deeply(Verse::parse_config_string($config), {
+			site => {
+				title => 'Overrides',
+				url   => 'http://www.example.com',
+				theme => 'override',
+			},
+			paths => {
+				site  => '/u/sites/example.com/site_root',
+				root  => '/u/sites/example.com/.web',
+				data  => '/u/sites/example.com/site_data',
+				theme => '/srv/www/themes/override',
+			}
+		}, "Verse allows full override of defaults");
+}
+
+{ # rhyme - prints a bunch of stuff to stdout
+	local $Verse::ROOT = $Verse::ROOT;
+	$Verse::ROOT = 't/data/root/good';
+
+	cmp_deeply(verse, verse,
+		"Verse memoizes; two calls should return the same values");
+
+	my $expect = <<EOF;
+\x1b[38;5;4mloading.
+\x1b[38;5;2m
+
+  ##     ## ######## ########   ######  ########
+  ##     ## ##       ##     ## ##    ## ##
+  ##     ## ##       ##     ## ##       ##
+  ##     ## ######   ########   ######  ######
+   ##   ##  ##       ##   ##         ## ##
+    ## ##   ##       ##    ##  ##    ## ##
+     ###    ######## ##     ##  ######  ########
+
+
+\x1b[0m
+ROOT:   /u/sites/example.com/verse
+SITE:   /u/sites/example.com/htdocs
+DATA:   /u/sites/example.com/data
+THEME:  default
+
+
+EOF
+	stdout_is { rhyme } $expect,
+		"rhyme prints diagnostic boot messages";
 }
 
 done_testing;

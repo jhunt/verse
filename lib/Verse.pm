@@ -9,37 +9,20 @@ our @EXPORT = qw/
 	verse
 /;
 
-use YAML qw/LoadFile/;
+use Verse::Utils;
+use YAML qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
 our $VERSION = '0.5';
 
 our $ROOT = $ENV{PWD};
 
-my $CONFIG = undef;
-
-sub qualify_path
+sub parse_config_string
 {
-	my ($path) = @_;
-	return unless $path;
-	return $path if substr($path, 0, 1) eq '/';
-	return "$ENV{PWD}/$path";
-}
+	my ($yaml) = @_;
+	my $cfg = Load($yaml);
 
-sub verse()
-{
-	return $CONFIG if $CONFIG;
-
-	-d "$ROOT/.verse"
-		or die "Verse boot failed: No .verse directory in $ROOT/\n";
-	-f "$ROOT/.verse/site.yml"
-
-		or die "Verse boot failed: No site.yml in $ROOT/.verse\n";
-
-	$CONFIG = LoadFile("$ROOT/.verse/site.yml")
-		or die "Verse boot failure: $ROOT\n";
-
-	$CONFIG = merge($CONFIG, {
+	$cfg = merge($cfg, {
 		paths => {
 			site => 'htdocs',
 			root => '.verse',
@@ -49,12 +32,30 @@ sub verse()
 			theme => 'default',
 		},
 	});
-
-	for (keys %{$CONFIG->{paths}}) {
-		$CONFIG->{paths}{$_} = qualify_path($CONFIG->{paths}{$_});
+	for (keys %{$cfg->{paths}}) {
+		$cfg->{paths}{$_} = vpath($cfg->{paths}{$_});
 	}
 
-	$CONFIG->{paths}{theme} = $CONFIG->{paths}{root}."/theme/".$CONFIG->{site}{theme};
+	$cfg->{paths}{theme} = $cfg->{paths}{root}."/theme/".$cfg->{site}{theme}
+		unless exists $cfg->{paths}{theme};
+
+	$cfg;
+}
+
+my $CONFIG = undef;
+
+sub verse()
+{
+	return $CONFIG if $CONFIG;
+
+	-d "$ROOT/.verse"
+		or die "No .verse directory in $ROOT/\n";
+	open my $fh, "<", "$ROOT/.verse/site.yml"
+		or die "Failed to read $ROOT/.verse/site.yml: $!\n";
+
+	eval { $CONFIG = parse_config_string(do { local $/; <$fh> }) }
+		or die "Failed to parse $ROOT/.verse/site.yml\n";
+	close $fh;
 
 	return $CONFIG;
 }
@@ -93,6 +94,25 @@ EOF
 =head1 NAME
 
 Verse - Static Blogging
+
+=head1 FUNCTIONS
+
+=head2 verse
+
+Return the fully-qualified Verse configuration, based on the
+site.yml file found in B<$Verse::ROOT/.verse>.  This configuration
+hash will be memoized, so future calls to B<verse> do not incur
+the same parsing / normalization overhead.
+
+=head2 rhyme
+
+Print the Verse boot screen, which includes diagnostic messages
+about the paths that will be used during the render process.
+
+=head2 parse_config_string($yaml)
+
+Parse the B<$yaml> string as Verse configuration, supplying sane
+defaults and resolving paths as appropriate.
 
 =head1 AUTHOR
 
