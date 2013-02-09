@@ -17,6 +17,7 @@ my $Blog = 'Verse::Object::Blog';
 }
 
 { # article parsing
+	$Verse::ROOT = 't/data/root/good';
 	my $article;
 
 	$article = $Blog->parse(<<EOF);
@@ -59,7 +60,6 @@ EOF
 
 
 	if (-x '/usr/bin/markdown') {
-		local $Verse::ROOT = 't/data/root/good';
 		$article = $Blog->parse(<<EOF);
 ---
 title: Markdown
@@ -78,10 +78,9 @@ EOF
 					body  => '<p>Here is the <em>actual</em> content.</p>',
 				}
 			}, 'Blog formats teaser and body as markdown, when appropriate');
-	} # do we have markdown?
 
 
-	$article = $Blog->parse(<<EOF);
+		$article = $Blog->parse(<<EOF);
 ---
 title: Auto-Teaser
 format: markdown
@@ -89,15 +88,16 @@ format: markdown
 Teaser & Body
 EOF
 
-	isa_ok($article, $Blog, "Blog->parse");
-	cmp_deeply($article->vars, {
-			article => {
-				title => 'Auto-Teaser',
-				format => 'markdown',
-				teaser => '<p>Teaser &amp; Body</p>',
-				body  => '<p>Teaser &amp; Body</p>',
-			}
-		}, 'Teaser doubles as body if body not given');
+		isa_ok($article, $Blog, "Blog->parse");
+		cmp_deeply($article->vars, {
+				article => {
+					title => 'Auto-Teaser',
+					format => 'markdown',
+					teaser => '<p>Teaser &amp; Body</p>',
+					body  => '<p>Teaser &amp; Body</p>',
+				}
+			}, 'Teaser doubles as body if body not given');
+	} # do we have markdown?
 }
 
 { # collection utils (slice, recent, etc.)

@@ -17,6 +17,7 @@ my $Page = 'Verse::Object::Page';
 }
 
 { # page parsing
+	$Verse::ROOT = 't/data/root/good';
 	my $page;
 
 	$page = $Page->parse(<<EOF);
@@ -40,7 +41,6 @@ EOF
 
 
 	if (-x "/usr/bin/markdown") {
-		local $Verse::ROOT = 't/data/root/good';
 		$page = $Page->parse(<<EOF);
 ---
 title: Markdown
