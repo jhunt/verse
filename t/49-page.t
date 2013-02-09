@@ -9,6 +9,7 @@ BEGIN { use_ok 'Verse'
 BEGIN { use_ok 'Verse::Object::Page'
 		or BAIL_OUT "Could not `use Verse::Object::Page`" }
 
+$Verse::ROOT = 't/data/root/good';
 my $Page = 'Verse::Object::Page';
 
 {
@@ -40,7 +41,6 @@ EOF
 
 
 	if (-x "/usr/bin/markdown") {
-		local $Verse::ROOT = 't/data/root/good';
 		$page = $Page->parse(<<EOF);
 ---
 title: Markdown
