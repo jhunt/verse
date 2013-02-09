@@ -8,24 +8,23 @@ use base Verse::Object::Base;
 
 sub read_all {
 	my ($class) = @_;
-	$class->read_all_from(verse->{paths}{data}.'/blog');
+	$class->read_all(verse->{paths}{data}.'/blog');
 }
 
 sub read
 {
 	my ($class, $path) = @_;
 
-	my ($attrs, $teaser, $body) = $class->read_from($path);
+	my ($self, $teaser, $body) = $class->SUPER::read($path);
+	return unless $self;
 
-	$attrs->{teaser} = $teaser;
-	$attrs->{body}   = $body || $teaser;
-
-	if ($attrs->{format} eq 'markdown') {
-		$attrs->{teaser} = markdown($attrs->{teaser}, verse);
-		$attrs->{body} = markdown($attrs->{body}, verse);
+	if ($self->{__attrs}{format} eq 'markdown') {
+		$teaser = markdown($teaser, verse);
+		$body   = markdown($body,   verse) if $body;
 	}
+	$body = $teaser unless $body;
 
-	bless($attrs, $class);
+	return $self;
 }
 
 ########################################
