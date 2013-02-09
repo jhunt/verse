@@ -3,13 +3,14 @@ package Verse::Theme;
 use Verse;
 use Verse::Object::Blog;
 use Verse::Object::Page;
+use Verse::Object::Gallery;
 use Template;
 
 use base Exporter;
 our @EXPORT = qw/
 	exist copy dir
 	template render
-	blog page
+	blog page gallery
 /;
 
 sub path
@@ -97,8 +98,9 @@ sub render
 		or die "template failed: ".template->error;
 }
 
-sub blog { return Verse::Object::Blog; }
-sub page { return Verse::Object::Page; }
+sub blog    { Verse::Object::Blog }
+sub page    { Verse::Object::Page }
+sub gallery { Verse::Object::Gallery }
 
 1;
 
