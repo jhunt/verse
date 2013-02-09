@@ -4,30 +4,26 @@ use Verse;
 use Verse::Utils;
 use base Verse::Object::Base;
 
-########################################
+sub type { 'article' }
+sub path { 'blog' }
 
-sub read_all {
-	my ($class) = @_;
-	$class->read_all(verse->{paths}{data}.'/blog');
-}
-
-sub read
+sub parse
 {
-	my ($class, $path) = @_;
+	my ($class, $yaml) = @_;
 
-	my ($self, $teaser, $body) = $class->SUPER::read($path);
+	my ($self, $teaser, $body) = $class->SUPER::parse($yaml);
 	return unless $self;
 
-	if ($self->{__attrs}{format} eq 'markdown') {
+	if ($self->{__attrs}{format} and $self->{__attrs}{format} eq 'markdown') {
 		$teaser = markdown($teaser, verse);
 		$body   = markdown($body,   verse) if $body;
 	}
 	$body = $teaser unless $body;
+	$self->{__attrs}{teaser} = $teaser;
+	$self->{__attrs}{body}   = $body;
 
 	return $self;
 }
-
-########################################
 
 sub slice
 {
@@ -44,18 +40,6 @@ sub recent
 
 ########################################
 
-sub vars
-{
-	my ($self) = @_;
-	return {
-		article => $self,
-	};
-}
-
-sub permalink
-{
-	my ($self) = @_;
-	return $self->{perma};
-}
+sub uuid { $_[0]->{__attrs}{permalink} }
 
 1;

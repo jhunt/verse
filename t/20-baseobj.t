@@ -9,6 +9,60 @@ BEGIN { use_ok 'Verse::Object::Base'
 
 my $Base = 'Verse::Object::Base';
 
+{ # class types and methods
+	is($Base->type, 'object', "Base object type");
+	is($Base->path, 'misc', "Base object path");
+}
+
+{ # parse
+	my $obj;
+
+	$obj = $Base->parse(<<EOF);
+title:  An entry
+author: jhunt
+dated:  11 Oct 2012 10:11:12 GMT
+EOF
+	isa_ok($obj, $Base, "Base->parse(YAML)");
+
+	cmp_deeply($obj->attrs, {
+			title  => 'An entry',
+			author => 'jhunt',
+			dated  => '11 Oct 2012 10:11:12 GMT',
+		}, "Parsed attributes from YAML");
+
+	is($obj->type, "object", "Type is correct");
+	cmp_deeply($obj->vars, {
+			object => $obj->attrs,
+		}, "By default, vars == { type => attrs }");
+
+	is($obj->dated, 1349950272,
+		"Generated 'dated' meta-attribute");
+
+	my $id = $obj->uuid;
+	ok($id, "Generated a UUID");
+	is($obj->uuid, $id, "UUID is permanent");
+
+
+	$obj = $Base->parse(<<EOF);
+title: An entry
+# no dated: key...
+EOF
+	is($obj->dated, undef,
+		"Object without 'dated' attribute has dated() == undef");
+	ok($obj->uuid, "New object has a UUID");
+	isnt($obj->uuid, $id, "Object UUID is different for 2nd object");
+
+
+	my @list = $Base->parse(<<EOF);
+first: var
+--- |-
+a string
+EOF
+	isa_ok($list[0], $Base, "First item of multi-stream");
+	is($list[1], "a string",
+		"Retrieved second item from multi-stream input");
+}
+
 { # read
 	ok(!-f "/no/such/file",
 		"[sanity] /no/such/file should not exist");
@@ -47,26 +101,8 @@ my $Base = 'Verse::Object::Base';
 
 	is($obj->dated, 1349950272,
 		"Generated 'dated' meta-attribute");
-	is($obj->path, "t/data/base/simple.yml",
-		"Generated 'path' meta-attribute");
-
-	my $id = $obj->uuid;
-	ok($id, "Generated a UUID");
-	is($obj->uuid, $id, "UUID is permanent");
-
-	$obj = $Base->read("t/data/base/undated.yml");
-	is($obj->dated, undef,
-		"Object without 'dated' attribute has dated() == undef");
-	ok($obj->uuid, "New object has a UUID");
-	isnt($obj->uuid, $id, "Object UUID is different for 2nd object");
-}
-
-{ # multi-stream objects
-
-	my @list = $Base->read("t/data/base/multi.yml");
-	isa_ok($list[0], $Base, "First item of multi-stream");
-	is($list[1], "a string",
-		"Retrieved second item from multi-stream input");
+	is($obj->file, "t/data/base/simple.yml",
+		"Generated 'file' meta-attribute");
 }
 
 { # read-all

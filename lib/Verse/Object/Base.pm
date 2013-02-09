@@ -3,22 +3,21 @@ package Verse::Object::Base;
 use Verse::Utils;
 
 use File::Find qw/find/;
-use YAML qw/LoadFile Dump/;
+use YAML qw/Load Dump/;
 use Time::ParseDate qw/parsedate/;
 
 sub type { 'object' }
+sub path { 'misc' }
 
 ########################################
 
-sub read
+sub parse
 {
-	my ($class, $path) = @_;
-	return unless -r $path and -f $path;
+	my ($class, $yaml) = @_;
 
-	my ($attrs, @rest) = LoadFile($path);
+	my ($attrs, @rest) = Load($yaml);
 	my $self = bless({
 		__attrs => $attrs,
-		__path  => $path
 	}, $class);
 
 	if (exists $attrs->{dated}) {
@@ -28,9 +27,37 @@ sub read
 
 	return wantarray ? ($self, @rest) : $self;
 }
+sub read
+{
+	my ($class, $file) = @_;
+	return unless -r $file and -f $file;
+
+	open my $fh, "<", $file
+		or die "Failed to read $file: $!\n";
+	my ($self, @rest) = $class->parse(do { local $/; <$fh> });
+	close $fh;
+
+	$self->{__file} = $file;
+	return wantarray ? ($self, @rest) : $self;
+}
+
+sub read_all
+{
+	my ($class, $dir) = @_;
+	$dir = $class->path unless $dir;
+	my @lst = ();
+	find({
+		no_chdir => 1,
+		wanted   => sub {
+			return unless m/\.yml$/;
+			push @lst, $class->read($File::Find::name);
+		},
+	}, $dir);
+	@lst;
+}
 
 sub dated { $_[0]->{__dated} }
-sub path  { $_[0]->{__path}  }
+sub file  { $_[0]->{__file}  }
 sub attrs { $_[0]->{__attrs} }
 
 sub vars {
@@ -46,21 +73,6 @@ sub uuid
 	return $self->{__permalink};
 }
 
-########################################
-
-sub read_all
-{
-	my ($class, $dir) = @_;
-	my @lst = ();
-	find({
-		no_chdir => 1,
-		wanted   => sub {
-			return unless m/\.yml$/;
-			push @lst, $class->read($File::Find::name);
-		},
-	}, $dir);
-	@lst;
-}
 
 1;
 
@@ -74,9 +86,13 @@ Provides common functionality for all Verse object types.
 
 =head1 CLASS METHODS
 
-=head2 read($path)
+=head2 parse($yaml)
 
-Read an object definition from YAML file at $path.
+Parse an object definition from a literal YAML string.
+
+=head2 read($file)
+
+Read an object definition from YAML file at $file.
 
 =head2 read_all($path)
 
@@ -88,11 +104,16 @@ Find all *.yml files under $path, and read them in.
 
 Type of object.  Should be overridden by sub-classes.
 
+=head2 path()
+
+Path to the area where these objects are stored, relative to
+the Verse data directory (usually .verse/data).
+
 =head2 dated()
 
 Epoch timestamp parsed from the 'dated' attribute.
 
-=head2 path()
+=head2 file()
 
 Path that the object was originally read from.
 
