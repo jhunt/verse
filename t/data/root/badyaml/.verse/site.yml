@@ -1,0 +1,7 @@
+site:
+  title: Bad Yaml
+  description: This site.yml has some syntax errors
+---
+This string is incorrect; the stream marker should have ended
+with a '|-' to turn on block string parsing.  Oh well, that's
+what testing is for!

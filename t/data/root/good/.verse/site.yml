@@ -1,0 +1,7 @@
+paths:
+  site: /u/sites/example.com/htdocs
+  data: /u/sites/example.com/data
+  root: /u/sites/example.com/verse
+site:
+  title: Example Website
+  uri:   http://www.example.com
