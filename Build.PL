@@ -9,10 +9,13 @@ my $builder = Module::Build->new(
 	dist_author         => q{James Hunt <james@niftylogic.com>},
 	dist_version_from   => 'lib/Verse.pm',
 	build_requires => {
-		'Test::More' => 0,
+		'Test::More'        => 0,
+		'Test::Deep'        => 0,
+		'Test::Output'      => 0,
+		'Test::Exception'   => 0,
 	},
 	configure_requires => {
-		'Module::Build' => 0.38
+		'Module::Build'     => 0.38,
 	},
 	requires => {
 		'File::Find'        => 0,
