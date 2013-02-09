@@ -23,3 +23,25 @@ sub pieces
 }
 
 1;
+
+=head1 NAME
+
+Verse::Object::Gallery - Gallery Support for Verse
+
+=head1 METHODS
+
+=head2 pieces()
+
+Retrieve an augmented list of the pieces in the Gallery.
+
+=head2 OVERRIDDEN METHODS
+
+=head2 type()
+
+=head2 path()
+
+=head1 AUTHOR
+
+James Hunt C<< <james@niftylogic.com> >>
+
+=cut

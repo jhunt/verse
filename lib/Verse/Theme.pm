@@ -143,6 +143,10 @@ Shortcut for Verse::Object::Blog
 
 Shortcut for Verse::Object::Page
 
+=head2 gallery()
+
+Shortcut for Verse::Object::Gallery
+
 =head1 INTERNAL FUNCTIONS
 
 =head2 path($path, %extra)
