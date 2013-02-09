@@ -84,9 +84,9 @@ sub render
 	my ($obj, %opt) = @_;
 
 	my %attrs = ();
-	if (ref($obj) and UNIVERSAL::can($obj, 'permalink')) {
-		$attrs{permalink} = $obj->permalink;
-		$obj = $obj->vars;
+	if (ref($obj) and UNIVERSAL::can($obj, 'uuid')) {
+		$attrs{permalink} = $obj->uuid;
+		$obj = { $obj->type => $obj };
 	}
 	$obj->{site} = verse->{site};
 

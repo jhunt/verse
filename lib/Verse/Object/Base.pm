@@ -70,11 +70,6 @@ sub file   { $_[0]->{__file}   }
 sub format { $_[0]->{__format} }
 sub attrs  { $_[0]->{__attrs}  }
 
-sub vars {
-	my ($self) = @_;
-	return { $self->type => $self->attrs };
-}
-
 my $UUID = 1;
 sub uuid
 {
@@ -82,7 +77,6 @@ sub uuid
 	$self->{__permalink} = $UUID++ unless $self->{__permalink};
 	return $self->{__permalink};
 }
-
 
 1;
 
@@ -134,12 +128,6 @@ The format requested by the object.  Defaults to 'plain'.
 =head2 attrs()
 
 Hashref of raw object attributes.
-
-=head2 vars()
-
-Hashref of object attributes, properly wrapped in a subkey, for
-use in rendered templates.  This method can be overridden by
-sub-classes.
 
 =head2 uuid()
 

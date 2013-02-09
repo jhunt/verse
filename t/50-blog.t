@@ -32,15 +32,8 @@ EOF
 	isa_ok($article, $Blog, "Blog->parse");
 
 	is($article->type, 'article', 'Blog overrides type');
-	cmp_deeply($article->vars, {
-			article => {
-				title => 'My New Post',
-				permalink => 'my-new-post',
-				teaser => 'TEASER GOES HERE',
-				body  => 'BODY GOES HERE'
-			}
-		}, 'Blog attributes are correct');
-
+	is($article->attrs->{teaser}, "TEASER GOES HERE");
+	is($article->attrs->{body},   "BODY GOES HERE");
 	is($article->uuid, 'my-new-post',
 		"Blog overrides UUID to pull data from post");
 
@@ -70,14 +63,12 @@ This is to **tease** the reader...
 Here is the _actual_ content.
 EOF
 		isa_ok($article, $Blog, "Blog->parse");
-		cmp_deeply($article->vars, {
-				article => {
-					title => 'Markdown',
-					format => 'markdown',
-					teaser => '<p>This is to <strong>tease</strong> the reader...</p>',
-					body  => '<p>Here is the <em>actual</em> content.</p>',
-				}
-			}, 'Blog formats teaser and body as markdown, when appropriate');
+		is($article->attrs->{teaser},
+			'<p>This is to <strong>tease</strong> the reader...</p>',
+			"Blog post teaser is formatted");
+		is($article->attrs->{body},
+			'<p>Here is the <em>actual</em> content.</p>',
+			"Blog post body is formatted");
 
 
 		$article = $Blog->parse(<<EOF);
@@ -89,14 +80,12 @@ Teaser & Body
 EOF
 
 		isa_ok($article, $Blog, "Blog->parse");
-		cmp_deeply($article->vars, {
-				article => {
-					title => 'Auto-Teaser',
-					format => 'markdown',
-					teaser => '<p>Teaser &amp; Body</p>',
-					body  => '<p>Teaser &amp; Body</p>',
-				}
-			}, 'Teaser doubles as body if body not given');
+		is($article->attrs->{teaser},
+			'<p>Teaser &amp; Body</p>',
+			"Teaser is correct");
+		is($article->attrs->{teaser},
+			$article->attrs->{body},
+			'Teaser doubles as body if body not given');
 	} # do we have markdown?
 }
 

@@ -31,10 +31,6 @@ EOF
 		}, "Parsed attributes from YAML");
 
 	is($obj->type, "object", "Type is correct");
-	cmp_deeply($obj->vars, {
-			object => $obj->attrs,
-		}, "By default, vars == { type => attrs }");
-
 	is($obj->dated, 1349950272,
 		"Generated 'dated' meta-attribute");
 	is($obj->format, 'plain',
@@ -100,10 +96,6 @@ EOF
 		}, "Read attributes from YAML");
 
 	is($obj->type, "object", "Type is correct");
-	cmp_deeply($obj->vars, {
-			object => $obj->attrs,
-		}, "By default, vars == { type => attrs }");
-
 	is($obj->dated, 1349950272,
 		"Generated 'dated' meta-attribute");
 	is($obj->file, "t/data/base/simple.yml",

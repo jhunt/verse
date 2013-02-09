@@ -30,13 +30,9 @@ This is my about page
 EOF
 	isa_ok($page, $Page, 'Page->parse');
 	is($page->type, 'page', 'Page overrides type');
-	cmp_deeply($page->vars, {
-			page => {
-				title => 'New Page',
-				url => 'about.html',
-				body => 'This is my about page'
-			}
-		}, "Page attributes are correct");
+	is($page->attrs->{body}, 'This is my about page');
+	is($page->attrs->{url},  'about.html');
+	is($page->attrs->{title}, 'New Page');
 	is($page->uuid, 'about.html',
 		'Page returns url as uuid');
 
