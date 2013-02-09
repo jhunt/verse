@@ -12,11 +12,14 @@ BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 { # verse config function
 	local $Verse::ROOT = $Verse::ROOT;
 
-	is($Verse::ROOT, $ENV{PWD},
-		"Verse defaults to PWD for ROOT");
-	ok(!-d "$ENV{PWD}/.verse",
-		"$ENV{PWD}/.verse should not exist");
+	if (exists $ENV{PWD}) {
+		is($Verse::ROOT, $ENV{PWD},
+			"Verse defaults to PWD for ROOT");
+	}
 
+	$Verse::ROOT = '/no/such/path';
+	ok(!-d $Verse::ROOT,
+		"/no/such/path/.verse should not exist");
 	throws_ok { verse } qr/No \.verse directory/,
 		'verse fails if .verse directory does not exist';
 
