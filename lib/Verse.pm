@@ -13,7 +13,7 @@ use Verse::Utils;
 use YAML qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
-our $VERSION = '0.5';
+our $VERSION = '0.5.1';
 
 our $ROOT = $ENV{PWD};
 
