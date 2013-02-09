@@ -4,6 +4,8 @@ use warnings;
 use Test::More;
 use Test::Deep;
 
+BEGIN { use_ok 'Verse'
+		or BAIL_OUT "Could not `use Verse`" }
 BEGIN { use_ok 'Verse::Object::Blog'
 		or BAIL_OUT "Could not `use Verse::Object::Blog`" }
 
@@ -96,6 +98,26 @@ EOF
 				body  => '<p>Teaser &amp; Body</p>',
 			}
 		}, 'Teaser doubles as body if body not given');
+}
+
+{ # collection utils (slice, recent, etc.)
+	$Verse::ROOT = 't/data/root/blog';
+	verse(1);
+
+	cmp_set(
+		[map { $_->{__attrs}{title} } $Blog->read_all],
+		['Starting Out', 'Continuing On', 'Happy February!'],
+		"Read all blog posts correctly");
+
+	cmp_deeply(
+		[map { $_->{__attrs}{title} } $Blog->recent(2)],
+		['Happy February!', 'Continuing On'],
+		"Read recent 2 blog posts correctly");
+
+	cmp_set(
+		[map { $_->{__attrs}{title} } $Blog->slice(2,10)],
+		['Starting Out'],
+		"Read slice of blog posts correctly");
 }
 
 done_testing;

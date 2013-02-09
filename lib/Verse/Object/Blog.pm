@@ -14,7 +14,7 @@ sub parse
 	my ($self, $teaser, $body) = $class->SUPER::parse($yaml);
 	return unless $self;
 
-	if ($self->{__attrs}{format} and $self->{__attrs}{format} eq 'markdown') {
+	if ($self->format eq 'markdown') {
 		$teaser = markdown($teaser, verse);
 		$body   = markdown($body,   verse) if $body;
 	}
@@ -28,8 +28,9 @@ sub parse
 sub slice
 {
 	my ($class, $offset, $limit) = @_;
-	return (sort { $b->{__date} cmp $a->{__date} }
-		$class->read_all)[$offset .. $limit-$offset-1];
+	return grep { $_ }
+		(sort { $b->{__dated} cmp $a->{__dated} }
+		$class->read_all)[$offset .. $offset+$limit-1];
 }
 
 sub recent
@@ -43,3 +44,33 @@ sub recent
 sub uuid { $_[0]->{__attrs}{permalink} }
 
 1;
+
+=head1 NAME
+
+Verse::Object::Blog - Blog Article Support for Verse
+
+=head1 METHODS
+
+=head2 slice($offset, $limit)
+
+Retrieve a slice of the reverse-chronological article history.
+
+=head2 recent($n)
+
+Retrieve the most recent B<$n> articles.
+
+=head1 OVERRIDDEN METHODS
+
+=head2 type()
+
+=head2 path()
+
+=head2 parse($yaml)
+
+=head2 uuid()
+
+=head1 AUTHOR
+
+James Hunt C<< <james@niftylogic.com> >>
+
+=cut

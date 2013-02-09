@@ -1,5 +1,9 @@
 package Verse::Object::Base;
 
+use strict;
+use warnings;
+
+use Verse;
 use Verse::Utils;
 
 use File::Find qw/find/;
@@ -25,6 +29,11 @@ sub parse
 			NO_RELATIVE => 1);
 	}
 
+	$self->{__format} = 'plain';
+	if (exists $attrs->{format}) {
+		$self->{__format} = $attrs->{format};
+	}
+
 	return wantarray ? ($self, @rest) : $self;
 }
 sub read
@@ -44,7 +53,7 @@ sub read
 sub read_all
 {
 	my ($class, $dir) = @_;
-	$dir = $class->path unless $dir;
+	$dir = verse->{paths}{data}.'/'.$class->path unless $dir;
 	my @lst = ();
 	find({
 		no_chdir => 1,
@@ -56,9 +65,10 @@ sub read_all
 	@lst;
 }
 
-sub dated { $_[0]->{__dated} }
-sub file  { $_[0]->{__file}  }
-sub attrs { $_[0]->{__attrs} }
+sub dated  { $_[0]->{__dated}  }
+sub file   { $_[0]->{__file}   }
+sub format { $_[0]->{__format} }
+sub attrs  { $_[0]->{__attrs}  }
 
 sub vars {
 	my ($self) = @_;
@@ -116,6 +126,10 @@ Epoch timestamp parsed from the 'dated' attribute.
 =head2 file()
 
 Path that the object was originally read from.
+
+=head2 format()
+
+The format requested by the object.  Defaults to 'plain'.
 
 =head2 attrs()
 

@@ -44,8 +44,9 @@ sub parse_config_string
 
 my $CONFIG = undef;
 
-sub verse()
+sub verse
 {
+	$CONFIG = undef if $_[0];
 	return $CONFIG if $CONFIG;
 
 	-d "$ROOT/.verse"

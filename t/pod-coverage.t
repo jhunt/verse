@@ -3,8 +3,6 @@ use strict;
 use warnings;
 use Test::More;
 
-plan skip_all => "yeah right";
-
 # Ensure a recent version of Test::Pod::Coverage
 my $min_tpc = 1.08;
 eval "use Test::Pod::Coverage $min_tpc";

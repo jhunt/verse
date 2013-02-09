@@ -101,3 +101,71 @@ sub blog { return Verse::Object::Blog; }
 sub page { return Verse::Object::Page; }
 
 1;
+
+=head1 NAME
+
+Verse::Theme - Utilities for Theme Writers
+
+=head1 DESCRIPTION
+
+The Verse::Theme modules defines a set of related functions that
+make writing themes for Verse easier.
+
+=head1 FUNCTIONS
+
+=head2 exist($path)
+
+Returns true if the interpolated B<$path> exists.
+
+=head2 copy($from, $to)
+
+Copies files from B<$from> into B<$to>.
+
+=head2 dir(@paths)
+
+Creates a set of directories.
+
+=head2 template()
+
+Returns a Template Toolkit object for use in rendering.
+
+=head2 render($obj_or_vars, as => $path, using => $template)
+
+Renders a template.
+
+=head2 blog()
+
+Shortcut for Verse::Object::Blog
+
+=head2 page()
+
+Shortcut for Verse::Object::Page
+
+=head1 INTERNAL FUNCTIONS
+
+=head2 path($path, %extra)
+
+Replace slugs in $path with the appropriate values.  The following
+are recognized by default:
+
+=over
+
+=item B<{root}>
+
+=item B<{data}>
+
+=item B<{site}>
+
+=item B<{theme}>
+
+=back
+
+=head2 run($cmd)
+
+Execute a command, printing helpful diagnostics to standard error.
+
+=head1 AUTHOR
+
+James Hunt C<< <james@niftylogic.com> >>
+
+=cut

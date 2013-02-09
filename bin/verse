@@ -1,9 +1,15 @@
 #!/usr/bin/perl
 
-use Verse::Tools;
+use Verse;
 
 if (@ARGV == 0) {
-	render;
+	rhyme;
+
+	my $theme = verse->{paths}{theme}.'/render';
+	die "Failed to find theme file: $theme\n"
+		unless -x $theme;
+
+	eval { require $theme } or die "$@\n";
 	exit 0;
 }
 

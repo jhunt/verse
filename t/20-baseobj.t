@@ -37,6 +37,8 @@ EOF
 
 	is($obj->dated, 1349950272,
 		"Generated 'dated' meta-attribute");
+	is($obj->format, 'plain',
+		"Default format meta-attribute");
 
 	my $id = $obj->uuid;
 	ok($id, "Generated a UUID");
@@ -45,10 +47,13 @@ EOF
 
 	$obj = $Base->parse(<<EOF);
 title: An entry
+format: markdown
 # no dated: key...
 EOF
 	is($obj->dated, undef,
 		"Object without 'dated' attribute has dated() == undef");
+	is($obj->format, 'markdown',
+		"Object definition supplies own format");
 	ok($obj->uuid, "New object has a UUID");
 	isnt($obj->uuid, $id, "Object UUID is different for 2nd object");
 
