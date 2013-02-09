@@ -40,3 +40,5 @@ MYMETA.json
 *.deb
 *.rpm
 *.tar.gz
+
+Verse-*/

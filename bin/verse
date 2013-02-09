@@ -20,3 +20,27 @@ if ($ARGV[0] == 'new') {
 
 print "USAGE: $0 [new]\n";
 exit 1;
+
+=head1 NAME
+
+verse - Static Website Generator
+
+=head1 DESCRIPTION
+
+Tired of installing and configuring web application servers and databases?
+
+Sick of the load that dynamic CMS and blog software put on your cloud VM?
+
+Still want layout and templating that these tools provide?
+
+Love text files?
+
+Verse is the website software for you!  Harkening back to the early days
+of the web, Verse revives the near-dead art of hand-crafted HTML and
+static (read:fast) web sites.
+
+=head1 AUTHOR
+
+James Hunt C<< <james@niftylogic.com> >>
+
+=cut

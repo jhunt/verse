@@ -29,8 +29,8 @@ t/data/root/blog/.verse/data/blog/draft.yml.draft
 t/data/root/blog/.verse/data/blog/feb.yml
 t/data/root/blog/.verse/data/blog/starting.yml
 t/data/root/blog/.verse/site.yml
+t/data/root/empty/.verse/README
 t/data/root/good/.verse/site.yml
-t/data/root/README
 t/manifest.t
 t/pod-coverage.t
 t/pod.t

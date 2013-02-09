@@ -94,7 +94,12 @@ EOF
 
 =head1 NAME
 
-Verse - Static Blogging
+Verse - Static Website Generator
+
+=head1 DESCRIPTION
+
+Verse provides a framework for building websites using Perl's
+Template Toolkit, YAML and the filesystem.
 
 =head1 FUNCTIONS
 

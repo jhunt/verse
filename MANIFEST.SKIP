@@ -71,5 +71,4 @@
 
 # Avoid testing files
 ^site\b
-^\.verse\b
 \.(deb|rpm|tar\.gz)$

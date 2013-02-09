@@ -6,11 +6,6 @@ use Test::More;
 BEGIN { use_ok 'Verse::Utils' or BAIL_OUT "Could not `use Verse::Utils`" }
 
 { # vpath
-	my $PWD = $Verse::ROOT;
-	is(vpath("a/path/to/stuff"),
-		"$PWD/a/path/to/stuff",
-		"Qualify paths per current working directory");
-
 	is(vpath(undef),
 		undef, "qualify(undef) yields undef");
 	is(vpath(''),
