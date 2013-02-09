@@ -18,11 +18,11 @@ my $builder = Module::Build->new(
 		'Module::Build'     => 0.38,
 	},
 	requires => {
-		'File::Find'        => 0,
+#		'File::Find'        => 0,
 		'File::Temp'        => 0,
 		'Hash::Merge'       => 0,
 		'Template'          => 0,
-		'Time::ParseDate'   => 0,
+#		'Time::ParseDate'   => 0,
 		'YAML'              => 0,
 	},
 	add_to_cleanup      => [ 'Verse-*', '*.deb', '*.rpm' ],
