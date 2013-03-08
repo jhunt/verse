@@ -67,7 +67,6 @@
 \bBuild.COM$
 \bBUILD.COM$
 \bbuild.com$
-^MANIFEST\.SKIP
 
 # Avoid testing files
 ^site\b
