@@ -71,3 +71,6 @@
 # Avoid testing files
 ^site\b
 \.(deb|rpm|tar\.gz)$
+
+#avoid dancer default bin script
+^bin/app.pl$
