@@ -13,7 +13,7 @@ use Verse::Utils;
 use YAML qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
-our $VERSION = '0.6.1';
+our $VERSION = '0.6.2';
 
 our $ROOT = $ENV{PWD};
 
@@ -50,13 +50,17 @@ sub verse
 	return $CONFIG if $CONFIG;
 
 	-d "$ROOT/.verse"
-		or die "No .verse directory in $ROOT/\n";
+		or die "No .verse directory in $ROOT/: $!\n";
 	open my $fh, "<", "$ROOT/.verse/site.yml"
 		or die "Failed to read $ROOT/.verse/site.yml: $!\n";
 
 	eval { $CONFIG = parse_config_string(do { local $/; <$fh> }) }
 		or die "Failed to parse $ROOT/.verse/site.yml\n";
 	close $fh;
+
+	if ($ENV{VERSE_LOCAL}) {
+		$CONFIG->{site}{url} = "file://$ENV{PWD}/htdocs";
+	}
 
 	return $CONFIG;
 }
