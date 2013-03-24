@@ -67,8 +67,10 @@
 \bBuild.COM$
 \bBUILD.COM$
 \bbuild.com$
-^MANIFEST\.SKIP
 
 # Avoid testing files
 ^site\b
 \.(deb|rpm|tar\.gz)$
+
+#avoid dancer default bin script
+^bin/app.pl$
