@@ -45,11 +45,11 @@ if ($CMD eq 'new' or $CMD eq 'setup') {
 
 build:
 	rm -rf htdocs
-	verse
+	verse build
 
 local:
 	rm -rf htdocs
-	verse --local
+	verse build --local
 
 check:
 	linkchecker htdocs/index.html  --no-follow-url=http:/
