@@ -3,6 +3,7 @@ package Verse::Object::Base;
 use strict;
 use warnings;
 
+use Carp;
 use Verse;
 use Verse::Utils;
 
@@ -42,7 +43,7 @@ sub read
 	return unless -r $file and -f $file;
 
 	open my $fh, "<", $file
-		or die "Failed to read $file: $!\n";
+		or croak "Failed to read $file: $!\n";
 	my ($self, @rest) = $class->parse(do { local $/; <$fh> });
 	close $fh;
 

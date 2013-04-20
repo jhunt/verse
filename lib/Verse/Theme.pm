@@ -1,5 +1,6 @@
 package Verse::Theme;
 
+use Carp;
 use Verse;
 use Verse::Object::Blog;
 use Verse::Object::Page;
@@ -39,7 +40,7 @@ sub run
 	my ($cmd) = @_;
 	print STDERR "[run] $cmd\n";
 	system($cmd);
-	die "`$cmd` failed\n", unless $? == 0;
+	croak "`$cmd` failed\n", unless $? == 0;
 }
 
 sub exist
@@ -95,7 +96,7 @@ sub render
 	print STDERR "[render] $opt{using} :: $path\n";
 
 	template->process($opt{using}, $obj, $path)
-		or die "template failed: ".template->error;
+		or croak "template failed: ".template->error;
 }
 
 sub blog    { Verse::Object::Blog }

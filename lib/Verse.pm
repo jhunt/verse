@@ -2,6 +2,7 @@ package Verse;
 
 use strict;
 use warnings;
+use Carp;
 
 use base 'Exporter';
 our @EXPORT = qw/
@@ -50,12 +51,12 @@ sub verse
 	return $CONFIG if $CONFIG;
 
 	-d "$ROOT/.verse"
-		or die "No .verse directory in $ROOT/\n";
+		or croak "No .verse directory in $ROOT/\n";
 	open my $fh, "<", "$ROOT/.verse/site.yml"
-		or die "Failed to read $ROOT/.verse/site.yml: $!\n";
+		or croak "Failed to read $ROOT/.verse/site.yml: $!\n";
 
 	eval { $CONFIG = parse_config_string(do { local $/; <$fh> }) }
-		or die "Failed to parse $ROOT/.verse/site.yml\n";
+		or croak "Failed to parse $ROOT/.verse/site.yml\n";
 	close $fh;
 
 	return $CONFIG;
