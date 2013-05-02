@@ -3,10 +3,28 @@ Maintainer: Package Monkey <packages@niftylogic.com>
 Section: perl
 Priority: optional
 Homepage: http://packages.niftylogic.com/perl/Verse
-Build-Depends: libtest-output-perl, libhash-merge-perl, debhelper (>= 8), perl-base, libyaml-perl, perl-modules, libtest-deep-perl, libtemplate-perl, perl, libtest-exception-perl, libtime-modules-perl
 Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 8),
+               libhash-merge-perl,
+               libtemplate-perl,
+               libtest-deep-perl,
+               libtest-exception-perl,
+               libtest-output-perl,
+               libtime-modules-perl,
+               libyaml-perl,
+               perl,
+               perl-base,
+               perl-modules
 
 Package: libverse-perl
-Depends: ${misc:Depends}, libyaml-perl, perl-modules, libtemplate-perl, libhash-merge-perl, perl, debhelper (>= 8), perl-base, libtime-modules-perl
-Description: License Management
+Description: Web Site Poetry
 Architecture: all
+Depends: debhelper (>= 8),
+         libhash-merge-perl,
+         libtemplate-perl,
+         libtime-modules-perl,
+         libyaml-perl,
+         perl,
+         perl-base,
+         perl-modules,
+         ${misc:Depends}
