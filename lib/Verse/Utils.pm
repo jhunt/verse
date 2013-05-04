@@ -21,6 +21,10 @@ sub markdown
 {
 	my ($code, $config) = @_;
 
+	# drop the comments
+	$code =~ s|^//.*\n||gm;
+	$code =~ s|(\S)\s+//.*|$1|g;
+
 	my ($fh, $file) = tempfile;
 	binmode($fh, ":utf8");
 	print $fh $code; close $fh;
