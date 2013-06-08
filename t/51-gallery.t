@@ -21,9 +21,9 @@ my $Gallery = 'Verse::Object::Gallery';
 title: Folio
 path:  gallery/folio
 pieces:
-  - name: image1
+  - file: image1
     details: oil on canvas, 18x24
-  - name: image2
+  - file: image2.jpg
     details: oil on hardboard, 3x5
 EOF
 	is($gallery->type, 'gallery', 'Gallery type is correct');
@@ -31,13 +31,13 @@ EOF
 	is($gallery->attrs->{path},  'gallery/folio');
 	cmp_deeply($gallery->pieces, [
 			{
-				name      => 'image1',
+				file      => 'image1',
 				details   => 'oil on canvas, 18x24',
 				image     => 'gallery/folio/image1.full.jpg',
 				thumbnail => 'gallery/folio/image1.t.jpg',
 			},
 			{
-				name      => 'image2',
+				file      => 'image2',
 				details   => 'oil on hardboard, 3x5',
 				image     => 'gallery/folio/image2.full.jpg',
 				thumbnail => 'gallery/folio/image2.t.jpg',

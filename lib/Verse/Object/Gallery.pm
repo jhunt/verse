@@ -15,8 +15,9 @@ sub pieces
 
 	my @lst = map {
 		my $o = dclone($_);
-		$o->{thumbnail} = "$path/$o->{name}.t.jpg";
-		$o->{image}     = "$path/$o->{name}.full.jpg";
+		$o->{file} =~ s/\.jpg$//i;
+		$o->{thumbnail} = "$path/$o->{file}.t.jpg";
+		$o->{image}     = "$path/$o->{file}.full.jpg";
 		$o;
 	} @{$self->attrs->{pieces}};
 	return \@lst;
