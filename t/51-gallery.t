@@ -17,9 +17,15 @@ my $Gallery = 'Verse::Object::Gallery';
 }
 
 { # parse
+	$Verse::ROOT = 't/data/root/good';
+
 	my $gallery = $Gallery->parse(<<EOF);
 title: Folio
 path:  gallery/folio
+statement: |-
+  para 1
+
+  para 2
 pieces:
   - file: image1
     details: oil on canvas, 18x24
@@ -27,8 +33,10 @@ pieces:
     details: oil on hardboard, 3x5
 EOF
 	is($gallery->type, 'gallery', 'Gallery type is correct');
-	is($gallery->attrs->{title}, 'Folio');
-	is($gallery->attrs->{path},  'gallery/folio');
+	is($gallery->attrs->{title}, 'Folio', 'Gallery title is correct');
+	is($gallery->attrs->{path},  'gallery/folio', 'Gallery path is correct');
+	like($gallery->attrs->{statement}, qr{<p>para 1</p>.*<p>para 2</p>}s,
+		"Formatted the artist's statement");
 	cmp_deeply($gallery->pieces, [
 			{
 				file      => 'image1',

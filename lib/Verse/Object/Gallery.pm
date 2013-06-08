@@ -8,6 +8,19 @@ use base Verse::Object::Base;
 sub type { 'gallery' }
 sub path { 'gallery' }
 
+sub parse
+{
+	my ($class, $yaml) = @_;
+	my ($self) = $class->SUPER::parse($yaml);
+	return unless $self;
+
+	if (my $stmt = $self->{__attrs}{statement}) {
+		$self->{__attrs}{statement} = markdown($stmt, verse);
+	}
+
+	return $self;
+}
+
 sub pieces
 {
 	my ($self) = @_;
@@ -40,6 +53,8 @@ Retrieve an augmented list of the pieces in the Gallery.
 =head2 type()
 
 =head2 path()
+
+=head2 parse($yaml)
 
 =head1 AUTHOR
 
