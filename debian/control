@@ -24,6 +24,7 @@ Depends: debhelper (>= 8),
          libtemplate-perl,
          libtime-modules-perl,
          libyaml-perl,
+         markdown
          perl,
          perl-base,
          perl-modules,
