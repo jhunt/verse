@@ -64,15 +64,18 @@ sub dir
 	run("mkdir -p ".path($_)) for @_;
 }
 
-my $TT;
+my %TT = ();
 sub template
 {
-	return $TT if $TT;
-	$TT = Template->new({
+	my $layout = path("{theme}/layouts/".(shift || 'site.tt'));
+	$layout = path("{theme}/layouts/site.tt") unless -f $layout;
+	return $TT{$layout} if $TT{$layout};
+
+	$TT{$layout} = Template->new({
 		ENCODING     => "utf-8",
 		ABSOLUTE     => 1,
 		INCLUDE_PATH => path("{theme}/templates"),
-		WRAPPER      => path("{theme}/layouts/site.tt"),
+		WRAPPER      => $layout,
 		EVAL_PERL    => 1,
 		PRE_CHOMP    => 1,
 		POST_CHOMP   => 1,
@@ -95,7 +98,7 @@ sub render
 	my $path = path($opt{at}, %attrs);
 	print STDERR "[render] $opt{using} :: $path\n";
 
-	template->process($opt{using}, $obj, $path)
+	template($opt{layout})->process($opt{using}, $obj, $path)
 		or croak "template failed: ".template->error;
 }
 
