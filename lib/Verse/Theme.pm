@@ -9,6 +9,7 @@ use Template;
 
 use base Exporter;
 our @EXPORT = qw/
+	path
 	exist copy dir
 	template render
 	blog page gallery
