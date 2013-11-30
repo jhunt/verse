@@ -8,6 +8,7 @@ use Verse;
 use Verse::Utils;
 
 use File::Find qw/find/;
+use File::Slurp qw/read_file/;
 use YAML qw/Load Dump/;
 use Time::ParseDate qw/parsedate/;
 
@@ -42,11 +43,9 @@ sub read
 	my ($class, $file) = @_;
 	return unless -r $file and -f $file;
 
-	open my $fh, "<", $file
+	my $raw = read_file($file, binmode => 'utf8')
 		or croak "Failed to read $file: $!\n";
-	binmode($fh, ":utf8");
-	my ($self, @rest) = $class->parse(do { local $/; <$fh> });
-	close $fh;
+	my ($self, @rest) = $class->parse($raw);
 
 	$self->{__file} = $file;
 	return wantarray ? ($self, @rest) : $self;

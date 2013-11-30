@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use Test::More;
 
-plan skip_all => "Markdown is not installed"
-	unless -x '/usr/bin/markdown';
-
 use_ok 'Verse::Utils' or BAIL_OUT "Could not `use Verse::Utils`";
 
 my $config = {
@@ -35,5 +32,10 @@ is(markdown("    // formatted comments are ok\n", $config),
 is(markdown("paragraph // with a comment\n", $config),
    markdown("paragraph\n", $config),
    "markdown strips comments from the end of lines");
+
+# unicode
+is(markdown("∑ (sigma)", $config),
+   "<p>∑ (sigma)</p>",
+   "markdown handles unicode reliably");
 
 done_testing;

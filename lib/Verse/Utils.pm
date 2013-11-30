@@ -1,5 +1,6 @@
 package Verse::Utils;
 
+use Verse::Markdown;
 use base 'Exporter';
 our @EXPORT = qw/
 	vpath
@@ -7,7 +8,6 @@ our @EXPORT = qw/
 /;
 
 use Verse;
-use File::Temp qw/tempfile/;
 
 sub vpath
 {
@@ -25,14 +25,7 @@ sub markdown
 	$code =~ s|^//.*\n||gm;
 	$code =~ s|(\S)\s+//.*|$1|g;
 
-	my ($fh, $file) = tempfile;
-	binmode($fh, ":utf8");
-	print $fh $code; close $fh;
-	$code = qx(/usr/bin/markdown --html4tags <$file);
-	unlink $file;
-
-	$code =~ s/^\s+//;
-	$code =~ s/\s+$//;
+	$code = Verse::Markdown::format($code);
 	$code =~ s/(href|src)=(["']?)\//$1=$2$config->{site}{url}\//g;
 	return $code;
 }
