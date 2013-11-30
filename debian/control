@@ -5,6 +5,7 @@ Priority: optional
 Homepage: http://packages.niftylogic.com/perl/Verse
 Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 8),
+               libfile-slurp-perl,
                libhash-merge-perl,
                libtemplate-perl,
                libtest-deep-perl,
@@ -21,6 +22,7 @@ Package: libverse-perl
 Description: Web Site Poetry
 Architecture: all
 Depends: debhelper (>= 8),
+         libfile-slurp-perl,
          libhash-merge-perl,
          libtemplate-perl,
          libtime-modules-perl,
