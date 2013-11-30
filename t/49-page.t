@@ -51,4 +51,22 @@ EOF
 	}
 }
 
+{ # unicode support
+	$Verse::ROOT = 't/data/root/good';
+	my $page;
+
+	$page = $Page->parse(<<EOF);
+---
+title: The Last ∑
+url:   last-sigma.html
+--- |-
+This is a literal ∑ character
+EOF
+	isa_ok($page, $Page, 'Page->parse (unicode)');
+	is($page->attrs->{title}, 'The Last ∑',
+		"Title with unicode sigma");
+	is($page->{__attrs}{body}, "This is a literal ∑ character",
+		"Body with unicode sigma");
+}
+
 done_testing;

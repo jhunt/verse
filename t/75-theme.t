@@ -1,26 +1,21 @@
 #!perl
+use utf8;
 use strict;
 use warnings;
 use Test::More;
 use Test::Deep;
+use File::Slurp qw/read_file/;
 use Cwd qw/chdir/;
 
 BEGIN { use_ok 'Verse'
 		or BAIL_OUT "Could not `use Verse`" }
+BEGIN { use_ok 'Verse::Object::Base'
+		or BAIL_OUT "Could not `use Verse::Object::Base`" }
 BEGIN { use_ok 'Verse::Theme'
-		or BAIL_OUT "Could not `use Verse::Object::Blog`" }
+		or BAIL_OUT "Could not `use Verse::Theme`" }
 
 use Verse::Object::Blog;
 use Verse::Object::Page;
-
-sub slurp
-{
-	my $path = shift;
-	open my $fh, "<", $path;
-	my $s = do { local $/; <$fh> };
-	close $fh;
-	$s;
-}
 
 { # shortcut methods
 	is(blog, 'Verse::Object::Blog', 'blog() => Blog');
@@ -74,18 +69,37 @@ my $PWD = $ENV{PWD};
 	Verse::Theme::render({},
 		using  => "test.tt",
 		at     => "{site}/test.html");
-	is(slurp("htdocs/test.html"),
+	is(read_file("htdocs/test.html"),
 		"SITE", "Rendered with default layout");
 
 	Verse::Theme::render({},
 		using  => "test.tt",
 		layout => "alt.tt",
 		at     => "{site}/test.html");
-	is(slurp("htdocs/test.html"),
+	is(read_file("htdocs/test.html"),
 		"ALT", "Rendered with default layout");
 
 	chdir $PWD;
+	qx(rm -fr t/data/root/blog/htdocs);
 }
 
-qx(rm -fr t/data/root/blog/htdocs);
+{ # unicode rendering
+	chdir "t/data/root/unicode";
+	$Verse::ROOT = $ENV{PWD};
+	Verse::verse(1); # reload
+
+	mkdir "htdocs"; # {site}
+
+	my $obj = Verse::Object::Base->read(".verse/data/unicode.yml");
+	is($obj->{__attrs}{title}, '∑', "read in unicode title");
+	Verse::Theme::render($obj->{__attrs},
+		using  => "unicode.tt",
+		at     => "{site}/test.html");
+	is(read_file("htdocs/test.html", binmode => ':utf8'),
+		"var(∑), literal(∑)", "Rendered unicode");
+
+	chdir $PWD;
+	qx(rm -fr t/data/root/unicode/htdocs);
+}
+
 done_testing;

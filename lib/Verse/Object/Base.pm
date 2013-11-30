@@ -44,6 +44,7 @@ sub read
 
 	open my $fh, "<", $file
 		or croak "Failed to read $file: $!\n";
+	binmode($fh, ":utf8");
 	my ($self, @rest) = $class->parse(do { local $/; <$fh> });
 	close $fh;
 

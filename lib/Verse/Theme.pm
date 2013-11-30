@@ -73,7 +73,7 @@ sub template
 	return $TT{$layout} if $TT{$layout};
 
 	$TT{$layout} = Template->new({
-		ENCODING     => "utf-8",
+		ENCODING     => "utf8",
 		ABSOLUTE     => 1,
 		INCLUDE_PATH => path("{theme}/templates"),
 		WRAPPER      => $layout,
@@ -99,7 +99,7 @@ sub render
 	my $path = path($opt{at}, %attrs);
 	print STDERR "[render] $opt{using} :: $path\n";
 
-	template($opt{layout})->process($opt{using}, $obj, $path)
+	template($opt{layout})->process($opt{using}, $obj, $path, {binmode => ':utf8'})
 		or croak "template failed: ".template->error;
 }
 
