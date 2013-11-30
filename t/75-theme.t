@@ -5,7 +5,7 @@ use warnings;
 use Test::More;
 use Test::Deep;
 use File::Slurp qw/read_file/;
-use Cwd qw/chdir/;
+use Cwd qw/chdir cwd/;
 
 BEGIN { use_ok 'Verse'
 		or BAIL_OUT "Could not `use Verse`" }
@@ -22,7 +22,7 @@ use Verse::Object::Page;
 	is(page, 'Verse::Object::Page', 'page() => Page');
 }
 
-my $PWD = $ENV{PWD};
+my $PWD = cwd;
 { # path interpolation
 	local $Verse::ROOT = "t/data/root/blog";
 
@@ -49,7 +49,7 @@ my $PWD = $ENV{PWD};
 
 { # rendering w/layout
 	chdir "t/data/root/blog";
-	$Verse::ROOT = $ENV{PWD};
+	$Verse::ROOT = cwd;
 	Verse::verse(1); # reload
 
 	is(Verse::Theme::template,
@@ -85,7 +85,7 @@ my $PWD = $ENV{PWD};
 
 { # unicode rendering
 	chdir "t/data/root/unicode";
-	$Verse::ROOT = $ENV{PWD};
+	$Verse::ROOT = cwd;
 	Verse::verse(1); # reload
 
 	mkdir "htdocs"; # {site}
