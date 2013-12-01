@@ -1,11 +1,13 @@
 package Verse::Markdown;
 
+use utf8;
 use strict;
 use warnings;
 use Digest::MD5 qw(md5_hex);
+use Encode qw(encode_utf8);
 
 my $NESTED; $NESTED = qr{(?>[^\[\]]|\[(??{$NESTED})\])*};
-my %ESC = map { $_ => md5_hex($_) } split //, '\\`*_{}[]()>#+-.!';
+my %ESC = map { $_ => cksum($_) } split //, '\\`*_{}[]()>#+-.!';
 
 # Global hashes, used by various utility routines
 my %URLS   = ();
@@ -17,6 +19,8 @@ my %HTML   = ();
 my $LIST_LEVEL = 0;
 
 #######################################################
+
+sub cksum { md5_hex(encode_utf8(shift)) }
 
 sub format
 {
@@ -97,7 +101,7 @@ sub _HashHTMLBlocks {
 					(?=\n+|\Z)	# followed by a newline or end of document
 				)
 			}{
-				my $key = md5_hex($1);
+				my $key = cksum($1);
 				$HTML{$key} = $1;
 				"\n\n" . $key . "\n\n";
 			}egmx;
@@ -117,7 +121,7 @@ sub _HashHTMLBlocks {
 					(?=\n+|\Z)	# followed by a newline or end of document
 				)
 			}{
-				my $key = md5_hex($1);
+				my $key = cksum($1);
 				$HTML{$key} = $1;
 				"\n\n" . $key . "\n\n";
 			}egmx;
@@ -139,7 +143,7 @@ sub _HashHTMLBlocks {
 					(?=\n{2,}|\Z)		# followed by a blank line or end of document
 				)
 			}{
-				my $key = md5_hex($1);
+				my $key = cksum($1);
 				$HTML{$key} = $1;
 				"\n\n" . $key . "\n\n";
 			}egx;
@@ -162,7 +166,7 @@ sub _HashHTMLBlocks {
 					(?=\n{2,}|\Z)		# followed by a blank line or end of document
 				)
 			}{
-				my $key = md5_hex($1);
+				my $key = cksum($1);
 				$HTML{$key} = $1;
 				"\n\n" . $key . "\n\n";
 			}egx;
@@ -1072,6 +1076,8 @@ Markdown parser/formatter.
 =head2 outdent
 
 =head2 encode_entities
+
+=head2 cksum
 
 =head1 AUTHOR
 
