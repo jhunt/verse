@@ -6,6 +6,7 @@ use Verse::Object::Blog;
 use Verse::Object::Page;
 use Verse::Object::Gallery;
 use Verse::Jump;
+use File::Find qw/find/;
 use Template;
 
 use base Exporter;
@@ -15,6 +16,7 @@ our @EXPORT = qw/
 	template render
 	blog page gallery
 	jump
+	diagrams
 /;
 
 sub path
@@ -135,6 +137,31 @@ sub jump
 	}
 }
 
+sub diagrams
+{
+	my (%opt) = @_;
+	$opt{source}      = "{root}/data/diag";
+	$opt{destination} = "{site}/diag";
+
+	copy $opt{source} if exist $opt{source};
+
+	for my $type (qw/dot twopi circo neato fdp sfdp/) {
+		find({
+			no_chdir => 1,
+			wanted => sub {
+				return unless -f and m/\.$type$/;
+
+				my $src = $_;
+				s/\.$type$/\.png/;
+
+				print "[run] $type -Tpng $src > $_\n";
+				qx($type -Tpng $src > $_);
+				unlink $src;
+			}
+		}, path($opt{destination}));
+	}
+}
+
 1;
 
 =head1 NAME
@@ -207,6 +234,12 @@ Execute a command, printing helpful diagnostics to standard error.
 
 Render all redirection / jump pages, as defined in jump.yml in the .verse
 root directory.
+
+=head2 diagrams(%opts)
+
+Using graphviz utilities (dot, circo, fdp, neato, etc.), render all diagrams
+in {root}/data/diag (or whatever the B<source> option is passed as).  All
+resultant files will be PNG images, in {site}/diag.
 
 =head1 AUTHOR
 
