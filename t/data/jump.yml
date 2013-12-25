@@ -1,0 +1,7 @@
+---
+path1:  http://www.example.com/path1
+path2:  http://www.example.com/path2
+hello:  /about
+hello2: about.html
+html:   http-is-fun.html
+a/b/c:  abc.html

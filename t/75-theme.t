@@ -64,6 +64,10 @@ my $PWD = cwd;
 		Verse::Theme::template('nonexistent.tt'),
 		"nonexistent layout == default");
 
+	isnt(Verse::Theme::template,
+		Verse::Theme::template('NONE'),
+		"NONE != default template");
+
 	mkdir "htdocs"; # {site}
 
 	Verse::Theme::render({},
@@ -78,6 +82,13 @@ my $PWD = cwd;
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
 		"ALT", "Rendered with default layout");
+
+	Verse::Theme::render({},
+		using  => "test.tt",
+		layout => "NONE",
+		at     => "{site}/test.html");
+	is(read_file("htdocs/test.html"),
+		"from test.tt", "Rendered without layout");
 
 	chdir $PWD;
 	qx(rm -fr t/data/root/blog/htdocs);

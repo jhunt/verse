@@ -5,6 +5,7 @@ use Verse;
 use Verse::Object::Blog;
 use Verse::Object::Page;
 use Verse::Object::Gallery;
+use Verse::Jump;
 use Template;
 
 use base Exporter;
@@ -13,6 +14,7 @@ our @EXPORT = qw/
 	exist copy dir
 	template render
 	blog page gallery
+	jump
 /;
 
 sub path
@@ -68,15 +70,20 @@ sub dir
 my %TT = ();
 sub template
 {
-	my $layout = path("{theme}/layouts/".(shift || 'site.tt'));
-	$layout = path("{theme}/layouts/site.tt") unless -f $layout;
+	my ($layout) = @_;
+
+	if (!$layout or $layout ne 'NONE') {
+		$layout = path("{theme}/layouts/".($layout || 'site.tt'));
+		$layout = path("{theme}/layouts/site.tt") unless -f $layout;
+	}
 	return $TT{$layout} if $TT{$layout};
 
 	$TT{$layout} = Template->new({
 		ENCODING     => "utf8",
 		ABSOLUTE     => 1,
 		INCLUDE_PATH => path("{theme}/templates"),
-		WRAPPER      => $layout,
+		($layout eq 'NONE' ? ()
+		                   : (WRAPPER => $layout)),
 		EVAL_PERL    => 1,
 		PRE_CHOMP    => 1,
 		POST_CHOMP   => 1,
@@ -106,6 +113,27 @@ sub render
 sub blog    { Verse::Object::Blog }
 sub page    { Verse::Object::Page }
 sub gallery { Verse::Object::Gallery }
+
+sub jump
+{
+	my (%opt) = @_;
+	$opt{template} ||= 'redir.tt';
+	$opt{root}     ||= 'go';
+
+	my $jump = Verse::Jump->read(path("{root}/jump.yml"));
+	for ($jump->resolve(verse->{site}{url})->pairs) {
+		my ($local, $remote) = @$_;
+		dir "{site}/$opt{root}/$local";
+		my $obj = {
+			path   => "$opt{root}/$local",
+			target => $remote,
+		};
+		render $obj,
+		       layout => 'NONE',
+		       using  => $opt{template},
+		       at     => "{site}/$opt{root}/$local/index.html";
+	}
+}
 
 1;
 
@@ -174,6 +202,11 @@ are recognized by default:
 =head2 run($cmd)
 
 Execute a command, printing helpful diagnostics to standard error.
+
+=head2 jump(%opts)
+
+Render all redirection / jump pages, as defined in jump.yml in the .verse
+root directory.
 
 =head1 AUTHOR
 
