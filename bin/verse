@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use Verse;
+use Verse::Demo;
 use Getopt::Long;
 my %OPTIONS = ();
 GetOptions(\%OPTIONS, qw/
@@ -29,6 +30,10 @@ if ($CMD eq 'build') {
 
 	eval { require $theme } or die "$@\n";
 	exit 0;
+}
+
+if ($CMD eq 'run' or $CMD eq 'demo') {
+	demo htdocs => 'htdocs';
 }
 
 if ($CMD eq 'new' or $CMD eq 'setup') {
@@ -90,7 +95,7 @@ EOF
 	exit 0;
 }
 
-print "USAGE: $0 (new|build|help)\n";
+print "USAGE: $0 (new|build|run|help)\n";
 exit 1;
 
 =head1 NAME
