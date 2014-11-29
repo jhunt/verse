@@ -14,9 +14,10 @@ use Verse::Utils;
 use YAML qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
-our $VERSION = '0.7.5';
+our $VERSION = '0.8.0';
 
 our $ROOT = $ENV{PWD};
+our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';
 
 sub parse_config_string
 {
@@ -26,8 +27,8 @@ sub parse_config_string
 	$cfg = merge($cfg, {
 		paths => {
 			site => 'htdocs',
-			root => '.verse',
-			data => '.verse/data',
+			root => "$VDIR",
+			data => "$VDIR/data",
 		},
 		site => {
 			theme => 'default',
@@ -50,17 +51,15 @@ sub verse
 	$CONFIG = undef if $_[0];
 	return $CONFIG if $CONFIG;
 
-	-d "$ROOT/.verse"
-		or croak "No .verse directory in $ROOT/: $!\n";
-	open my $fh, "<", "$ROOT/.verse/site.yml"
-		or croak "Failed to read $ROOT/.verse/site.yml: $!\n";
+	open my $fh, "<", "$ROOT/$VDIR/site.yml"
+		or croak "Failed to read $VDIR/site.yml: $!\n";
 
 	eval { $CONFIG = parse_config_string(do { local $/; <$fh> }) }
-		or croak "Failed to parse $ROOT/.verse/site.yml\n";
+		or croak "Failed to parse $VDIR/site.yml\n";
 	close $fh;
 
 	if ($ENV{VERSE_LOCAL}) {
-		$CONFIG->{site}{url} = "file://$ENV{PWD}/htdocs";
+		$CONFIG->{site}{url} = "file://$ROOT/htdocs";
 	}
 
 	return $CONFIG;
@@ -111,7 +110,7 @@ Template Toolkit, YAML and the filesystem.
 =head2 verse
 
 Return the fully-qualified Verse configuration, based on the
-site.yml file found in B<$Verse::ROOT/.verse>.  This configuration
+site.yml file found in B<$Verse::ROOT/$Verse::VDIR>.  This configuration
 hash will be memoized, so future calls to B<verse> do not incur
 the same parsing / normalization overhead.
 

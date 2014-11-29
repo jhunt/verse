@@ -18,7 +18,7 @@ BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 	$Verse::ROOT = '/no/such/path';
 	ok(!-d $Verse::ROOT,
 		"/no/such/path/.verse should not exist");
-	throws_ok { verse } qr/No \.verse directory/,
+	throws_ok { verse } qr/site\.yml: No such file/,
 		'verse fails if .verse directory does not exist';
 
 	$Verse::ROOT = 't/data/root/empty';
@@ -26,7 +26,7 @@ BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 		'verse fails if it cannot find .verse/site.yml';
 
 	$Verse::ROOT = 't/data/root/badyaml';
-	throws_ok { verse } qr/Failed to parse .*\/.verse\/site\.yml/,
+	throws_ok { verse } qr/Failed to parse .verse\/site\.yml/,
 		'verse fails if it cannot parse .verse/site.yml';
 
 }

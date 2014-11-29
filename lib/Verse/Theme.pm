@@ -143,7 +143,7 @@ sub diagrams
 	$opt{source}      = "{root}/data/diag";
 	$opt{destination} = "{site}/diag";
 
-	copy $opt{source} if exists $opt{source};
+	copy $opt{source} if exist $opt{source};
 
 	for my $type (qw/dot twopi circo neato fdp sfdp/) {
 		find({
