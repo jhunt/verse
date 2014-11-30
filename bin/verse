@@ -20,7 +20,7 @@ sub file
 	close $fh;
 }
 
-my $CMD = @ARGV ? $ARGV[0] : 'help';
+my $CMD = shift @ARGV || 'help';
 if ($CMD eq 'build') {
 	rhyme;
 
