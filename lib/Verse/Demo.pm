@@ -41,11 +41,13 @@ sub demo
 	$opts{backlog} = 64      unless $opts{backlog};
 	$opts{htdocs} = 'htdocs' unless $opts{htdocs};
 
+	$opts{htdocs} = "$ENV{PWD}/$opts{htdocs}";
+
 	die "bad 'listen' option: $opts{listen}\n"
 		unless $opts{listen} =~ m/^(.+):(\d+)$/;
 	my ($host, $port) = ($1, $2);
 
-	chdir $opts{htdocs};
+	chdir "/";
 	my $socket = IO::Socket::INET->new(
 		($host eq '*' ? () : (LocalHost => $host)),
 		LocalPort => $port,
@@ -75,11 +77,12 @@ sub demo
 			unless $req =~ m|^GET /(\S*) \S+\r\n$|;
 
 		my $file = $1 || 'index.html';
-		bail 404 => 'Not Found' unless -e $file;
+		my $path = "$opts{htdocs}/$file";
+		bail 404 => 'Not Found' unless -e $path;
 
 		status 200 => 'OK';
 		print "\r\n";
-		open my $res, "<", $file;
+		open my $res, "<", $path;
 		print $_ for <$res>;
 		done;
 	}
