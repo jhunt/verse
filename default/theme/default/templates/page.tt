@@ -1,0 +1,5 @@
+[% IF page.attrs.wrap %]
+<div id="[% page.attrs.wrap %]">[% page.attrs.body %]</div>
+[% ELSE %]
+[% page.attrs.body %]
+[% END %]

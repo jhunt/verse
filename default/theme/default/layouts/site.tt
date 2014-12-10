@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,target-densitydpi=device-dpi" />
+<meta name="generator" content="verse" />
+
+[% if dometa %]
+<meta name="twitter:card"       content="summary">
+[% if site.id.twitter %]
+<meta name="twitter:site"       content="@[% site.id.twitter %]">
+[% end %]
+
+<meta property="og:type"        content="article">
+<meta property="og:title"       content="[% article.attrs.title %]">
+<meta property="og:site_name"   content="[% site.title %]">
+<meta property="og:url"         content="[% site.canon %]/writings/[% article.attrs.permalink %].html">
+
+[% if article.attrs.thumb %]
+<meta property="og:image"       content="[% site.canon %]/content/wrt/stack.jpg">
+
+[% end %]
+<meta property="og:description" content="[% filter collapse %]
+[% if article.attrs.abstract %][% article.attrs.abstract %]
+[% else %]I'm sure it's enthralling and interesting[% end %]
+[% end %]">
+[% if site.id.facebook %]
+<meta property="article:author" content="[% site.id.facebook %]">
+[% end %]
+
+<title>[% article.attrs.title %] - [% site.title %]</title>
+
+[% else %]
+<title>[% site.title %]</title>
+
+[% end %]
+<link rel="stylesheet" href="[% site.url %]/css/site.css">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Raleway:400,700,900">
+<link rel="alternate home" type="application/rss+xml" title="[% site.title %] - RSS feed" href="[% site.url %]/feed.xml">
+</head>
+<body class="front">
+	<header>
+		<h1>[% site.title %]</h1>
+		[% if site.subtitle %]<p>[% site.subtitle %]</p>[% end %]
+
+		<nav><ul><li><a href="[% site.url %]">blog</a>
+		</li><li><a href="[% site.url %]/about">about</a>
+		</li></nav>
+	</header>
+
+	<hr>
+
+	<main>
+	[% content %]
+	</main>
+
+	<footer>
+		<p>Powered by <a href="http://verse.jameshunt.us" target="_blank">Verse</a></p>
+	</footer>
+	<script type="text/javascript" src="[% site.url %]/js/jquery.js"></script>
+	<script type="text/javascript" src="[% site.url %]/js/ui.js"></script>
+</body>
+</html>

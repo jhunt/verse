@@ -1,0 +1,14 @@
+[% USE date %]
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>[% site.title %]</title>
+  <link href="[% site.canon %]/rss.xml" rel="self" />
+  <link href="[% site.canon %]" />
+
+  <updated>[% date.format(latest, "%Y-%m-%dT%H:%M:%S") %]</updated>
+  <id>[% site.canon %]</id>
+  <author><name>[% site.author %]</name></author>
+  <generator uri="http://verse.jameshunt.us/">Verse</generator>
+
+  [% content %]
+</feed>

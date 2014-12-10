@@ -1,0 +1,10 @@
+[% USE date %]
+[% FOR article IN articles %]
+  <entry>
+    <title><![CDATA[[% article.attrs.title %]]]></title>
+    <link href="[% site.url %]/writings/[% article.uuid %].html?rss" />
+    <id>[% site.url %]/writings/[% article.uuid %].html</id>
+    <updated>[% date.format(article.timestamp, "%Y-%m-%dT%H:%M:%S") %][% article.__dated %]</updated>
+    <content type="html"><![CDATA[[% article.attrs.body %]]]></content>
+  </entry>
+[% END %]

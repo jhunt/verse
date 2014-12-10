@@ -1,0 +1,339 @@
+html, body, div, span, applet, object, iframe, h1,
+h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr,
+acronym, address, big, cite, code, del, dfn, em,
+img, ins, kbd, q, s, samp, small, strike, strong,
+sub, sup, tt, var, b, u, i, center, dl, dt, dd,
+ol, ul, li, fieldset, form, label, legend, table,
+caption, tbody, tfoot, thead, tr, th, td, article,
+aside, canvas, details, embed, figure, figcaption,
+footer, header, hgroup, menu, nav, output, ruby,
+section, summary, time, mark, audio, video {
+	margin: 0; padding: 0; border: 0;
+	font-size: 100%; font: inherit;
+	vertical-align: baseline;
+}
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+html, body { height: 100%; }
+body { line-height: 1; }
+ol, ul { list-style: none; }
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after,
+q:before, q:after { content: ''; content: none; }
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/*******************************************************/
+
+body {
+	font: normal 400 100% Raleway, sans-serif;
+}
+h1,h2,h3,h4,h5,h6, header p, header nav a {
+	font: normal 700 100% Raleway, sans-serif;
+}
+
+strong, b, em, i, p a { color: darkblue; }
+strong, b, p a, abbr { font-weight: bold; }
+em, i { font-style: italic; }
+p a {
+	text-decoration: none;
+	border-bottom: 1px dotted;
+}
+p a.ext {
+	background: transparent url(../images/ext.png) no-repeat 100% 50% scroll;
+	padding-right: 16px;
+}
+
+q { font-style: italic; }
+q:before { content: "\201c"; }
+q:after  { content: "\201d"; }
+
+blockquote {
+	width: 90%;
+	padding: 2.5%;
+	margin: 1em auto;
+
+	font-style: italic;
+	font-size: 2em;
+}
+blockquote:before {
+	font: normal 6em/1 serif;
+	color: #ccc;
+	content: "\201c";
+	position: absolute;
+	left: 0;
+}
+blockquote cite {
+	display: block;
+	margin-top: 0.5em;
+	text-align: right;
+	font-size: 0.667em;
+	font-style: normal;
+}
+
+abbr { border-bottom: 1px dashed #ccc; }
+var { }
+kbd { }
+samp { }
+
+code { font: bold 120% monospace; }
+code:before,
+code:after { content: "`"; }
+
+pre {
+	width: 90%;
+	padding: 2.5%;
+	margin: 4em auto;
+	color: #fff;
+	background-color: #3A3A43;
+	border-radius: 0.5em;
+	font: normal 100% monospace;
+}
+pre code { font: inherit; }
+pre code:before,
+pre code:after { content: none }
+
+sub {
+	font-size: 70%;
+	position: relative;
+	top: 0.5em;
+}
+sup {
+	font-size: 70%;
+	position: relative;
+	top: -0.5em;
+}
+sub sub, sub sup,
+sup sup, sup sub { font-size: 100%; }
+sup a, sub a {
+	border: none;
+	text-decoration: none;
+}
+del {
+	font-style: italic;
+	color: #444;
+	text-decoration: line-through;
+}
+ins {
+	color: darkgreen;
+	text-decoration: underline;
+}
+
+/*******************************************************/
+
+body > header, main, body > footer {
+	position: relative;
+	clear: both;
+	width: 70em;
+	margin: 0 auto;
+}
+body > header {
+	height: 5.5em; /* (2 * 0.25)  + (2 * 0.125) + (2 * 0.75) + 3 */
+	margin: 3em auto 2em auto;
+}
+body > header h1 {
+	font-size: 2em;
+	margin: 0 0 0 2.75em;
+	padding: 0.25em 0.25em 0 0.25em;
+}
+body > header p {
+	margin: 0 0 0 5.5em;
+	padding: 0.5em;
+}
+body > header nav {
+	position: absolute;
+	right: 0;
+	bottom: 0.5em;
+}
+body > header nav li {
+	float: left;
+	margin: 0 0 0 1em;
+	color: darkblue;
+}
+body > header nav a {
+	font-size: 1.25em;
+
+	display: block;
+	padding: 0.5em 1.5em;
+	color: inherit;
+	text-decoration: none;
+}
+body > header nav a.this,
+body > header nav a:hover {
+	color: #fff;
+	background-color: darkblue;
+}
+
+body > header + hr {
+	width: 100%;
+	height: 10em;
+	background: #fff url(../images/h1366.jpg) no-repeat 50% 50%;
+	border: 1px solid #000;
+	border-width: 0.125em 0 0.125em 0;
+}
+body.front > header + hr {
+	height: 24em;
+	border-width: 0.125em 0 0.125em 0;
+}
+
+#logo {
+	border: 0.25em solid darkblue;
+	padding: 0.125em;
+	display: inline-block;
+	float: left;
+}
+#logo span {
+	font: normal 900 3em/1em Raleway, serif;
+	display: inline-block;
+	padding: 0.25em;
+
+	color: #fff;
+	background-color: darkblue;
+	width: 1em;
+	text-align: center;
+}
+
+article {
+	margin: 4em 0;
+	padding-left: 4em; /* to clear the social media bar == 64px */
+	width: 50em;
+}
+article + article {
+	margin: 8em 0;
+	background: transparent url(../images/sep.png) no-repeat 50% 0 scroll;
+	padding-top: 10em;
+}
+body.blog article {
+	background: transparent url(../images/sep.png) no-repeat 50% 100% scroll;
+	padding-bottom: 10em;
+}
+article time {
+	color: darkblue;
+	font-style: italic;
+}
+article header a {
+	color: inherit;
+	text-decoration: none;
+}
+article header h2 {
+	font-size: 4em;
+}
+article header p {
+	font-size: 2em;
+	line-height: 1em;
+	width: auto;
+}
+article header {
+	margin: 0 0 2em 0;
+}
+
+article p {
+	width: 50em;
+	line-height: 1.75em;
+}
+article > * + p,
+article > * + ul,
+article > * + ol,
+article > * + figure,
+article > * + pre,
+article > * + blockquote {
+	margin-top: 2.5em;
+}
+article figure {
+	clear: both;
+}
+article figure img {
+	border: 1px solid #000;
+	padding: 2px;
+	margin: 0 auto;
+	display: block;
+}
+article figure.left { 
+	float: left;
+	margin: 2.5em 1em 1em 0;
+}
+article figure.right {
+	float: right;
+	margin: 2.5em 0 1em 1em;
+}
+
+main ol,
+main ul { margin: 2.5em 0 2.5em 3em; }
+main ul ul { margin: 0.25em 0 0.25em 2.5em; }
+main ul ul ul,
+main ol ol { margin: 0.25em 0 0.25em 1.5em; }
+main ol { list-style: decimal; }
+main ol ol { list-style: lower-latin }
+main ol ol ol { list-style: lower-roman }
+main ul { list-style: none; }
+main ul li:before { content: "-\00a0" }
+main ul ul { list-style: disc; }
+main ul ul li:before { content: none }
+main ul ul ul { list-style: circle; }
+
+main hr {
+	height: 10em;
+	border: none;
+	background: transparent url(../images/hr.png) no-repeat 50% 50%;
+}
+
+ul.social li:before { content: none }
+ul.social {
+	margin: 0;
+	padding: 0;
+}
+ul.social li {
+	height: 36px;
+	width: 36px;
+	border-radius: 8px;
+	background: #ccc none no-repeat 50% 50% scroll;
+	margin: 4px;
+	cursor: pointer;
+}
+ul.social li:hover { background-color: blue; }
+ul.social li.tw { background-image: url(../images/sm/twitter.png) }
+ul.social li.fb { background-image: url(../images/sm/facebook.png) }
+ul.social li.gg { background-image: url(../images/sm/google+.png) }
+article ul.social {
+	position: absolute;
+	left: 0px;
+	display: none;
+}
+article:hover ul.social {
+	display: block;
+}
+article aside {
+	position: absolute;
+	left: 64.4444em; /* (4em left + 50em width + 4em right) / 0.9em size */
+	font-size: 0.9em;
+	font-style: italic;
+	color: #444;
+}
+.eot {
+	display: inline-block;
+	width: 1.5em; /* 24px */
+	height: 1em;  /* 16px */
+	background: transparent url(../images/eot.png) no-repeat 50% 50% scroll;
+	margin-left: 0.25em;
+}
+
+body > footer {
+	padding: 1em 0;
+	width: 100%;
+
+	color: #fff;
+	background-color: #000;
+}
+body > footer p {
+	width: 62em;
+	margin: 0 auto;
+}
+body > footer a {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px dotted;
+}

@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Verse qw/verse/;
+use Verse::Theme;
+use File::Find;
+use List::Util qw/max/;
+
+my $var = verse->{site}{style};
+
+dir "{site}";
+copy "{theme}/assets/*"   if exist "{theme}/assets";
+copy "{theme}/var/$var/*" if exist "{theme}/var/$var";
+copy "{root}/content"     if exist "{root}/content";
+copy "{root}/static/*"    if exist "{root}/static";
+
+for my $page (page->read_all) {
+	render $page,
+		using => $page->attrs->{template} || "page.tt",
+		at    => "{site}{permalink}";
+}
+
+my @all = reverse
+	sort { ($a->{__dated} || 0) cmp ($b->{__dated} || 0) }
+	grep { !$_->attrs->{draft} } blog->read_all;
+$_->{timestamp} = $_->{__dated} for @all;
+
+my @featured   = grep { $_->attrs->{featured} and !$_->attrs->{private} } @all;
+my @syndicated = grep { !$_->attrs->{private}                           } @all;
+
+my $latest = max map { $_->{timestamp} } @syndicated;
+render { articles => [@syndicated], latest => $latest },
+	using  => "rss.tt",
+	layout => "rss.tt",
+	at     => "{site}/feed.xml";
+
+render { articles => [@featured] },
+	using => "main.tt",
+	at    => "{site}/index.html";
+
+dir "{site}/writings";
+for my $post (@all) {
+	render $post,
+		using => "article.tt",
+		at    => "{site}/writings/{permalink}.html";
+}
+
+1;

@@ -1,0 +1,48 @@
+#
+#
+#           Welcome to Verse!
+#
+#
+# This is your site.yml file.
+# All of your metadata and content is kept alongside this file, and
+# verse parses, assembles and formats the final site in htdocs/.
+#
+# To get started, you will probably want to change the title of
+# your site, and maybe select a different style.
+#
+
+site:
+  title:    My New Verse Site
+  subtitle: some thoughts, some musings...
+  author:   Your Name
+
+  # Canonical URL of your site (used for metadata, not linking)
+  canon:    http://example.com
+
+  theme: default
+  style: city
+  #
+  # 'styles' let you change the header image,
+  # and general color scheme, without having
+  # to write your own theme from scratch.
+  #
+  # try: beach, city, forest, mountain, snow
+  #
+
+
+  # Here you can tell Verse about your Social Media identities;
+  # Verse will use this information when generating page metadata
+  #id:
+  #  facebook: https://www.facebook.com/YOURID
+  #  twitter:  YOURID # minus the '@'
+
+
+# P.S. If you want to get started adding content to your site,
+# you'll be interested in the files under data/:
+#
+#  - data/pages - Standalone pages (index, About, etc.)
+#  - data/blog  - Articles in a weblog
+#
+#
+# Happy Hacking!
+# - The Verse Team
