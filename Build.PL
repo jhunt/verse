@@ -22,7 +22,7 @@ my $builder = Module::Build->new(
 		'File::Temp'        => 0,
 		'Hash::Merge'       => 0,
 		'Template'          => 0,
-#		'Time::ParseDate'   => 0,
+		'Time::ParseDate'   => 0,
 		'YAML'              => 0,
 	},
 	add_to_cleanup      => [ 'Verse-*', '*.deb', '*.rpm' ],
