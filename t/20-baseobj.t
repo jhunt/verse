@@ -70,11 +70,14 @@ EOF
 	is($Base->read("/no/such/file"), undef,
 		"read(<ENOENT>) yields undef");
 
-	ok(-f "/etc/shadow",
-		"[sanity] /etc/shadow should be a file");
-	ok(!-r "/etc/shadow",
-		"[sanity] /etc/shadow should be unreadable");
-	is($Base->read("/etc/shadow"), undef,
+	my $secret = -f "/etc/shadow"        ? "/etc/shadow"         # linux
+	           : -f "/etc/master.passwd" ? "/etc/master.passwd"  # darwin
+	           :    BAIL_OUT "could not find an extant but unreadable file!";
+	ok(-f $secret,
+		"[sanity] $secret should be a file");
+	ok(!-r $secret,
+		"[sanity] $secret should be unreadable");
+	is($Base->read($secret), undef,
 		"read(<EPERM>) yields undef");
 
 	ok(-d "t/data",
