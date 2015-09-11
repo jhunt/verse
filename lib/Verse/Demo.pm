@@ -8,9 +8,10 @@ our @EXPORT = qw/ demo /;
 
 sub status
 {
-	my ($c, $m) = @_;
+	my ($c, $m, $s) = @_;
 	print "HTTP/1.1 $c $m\r\n";
-	print STDERR "<- HTTP/1.1 $c $m\n";
+	$s = sprintf("%0.2f kB", ($s || 0) / 1024.0);
+	print STDERR "<- HTTP/1.1 $c $m ($s)\n";
 }
 
 sub done
@@ -83,7 +84,7 @@ sub demo
 		my $path = "$opts{htdocs}/$file";
 		bail 404 => 'Not Found' unless -e $path;
 
-		status 200 => 'OK';
+		status 200 => 'OK', -s $path;
 		print "\r\n";
 		open my $res, "<", $path;
 		print $_ for <$res>;
