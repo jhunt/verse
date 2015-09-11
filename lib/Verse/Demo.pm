@@ -22,6 +22,8 @@ sub done
 sub bail
 {
 	status(@_);
+	print "\r\n";
+	print "$_[0] $_[1]\r\n";
 	done;
 }
 
