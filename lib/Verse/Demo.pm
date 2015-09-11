@@ -82,6 +82,7 @@ sub demo
 
 		my $file = $1 || 'index.html';
 		my $path = "$opts{htdocs}/$file";
+		$path = "$path/index.html" if -d $path;
 		bail 404 => 'Not Found' unless -e $path;
 
 		status 200 => 'OK', -s $path;
