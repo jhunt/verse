@@ -62,6 +62,7 @@ sub demo
 
 	print STDERR ">> \x1b[38;5;2mVerse\x1b[0m [demo] web server listening on \x1b[38;5;4mhttp://$opts{listen}\x1b[0m\n";
 
+	local $SIG{CLD} = 'IGNORE';
 	while (my $client = $socket->accept) {
 		$client->autoflush(1);
 		binmode $client;
