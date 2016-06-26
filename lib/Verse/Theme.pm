@@ -97,18 +97,23 @@ sub template
 sub render
 {
 	my ($obj, %opt) = @_;
+	$obj = [$obj] unless ref $obj eq "ARRAY";
 
-	my %attrs = ();
-	if (ref($obj) and UNIVERSAL::can($obj, 'uuid')) {
-		$attrs{permalink} = $obj->uuid;
-		$obj = { $obj->type => $obj };
+	my %path, %vars;
+	for (@$obj) {
+		if (ref($_) and UNIVERSAL::can($_, 'uuid')) {
+			$path{permalink} = $_->uuid;
+			%vars = ( %vars, $_->type => $_ );
+		} else {
+			%vars = ( %vars, %$_ );
+		}
 	}
-	$obj->{site} = verse->{site};
+	$path{site} = verse->{site};
 
-	my $path = path($opt{at}, %attrs);
+	my $path = path($opt{at}, %path);
 	print STDERR "[render] $opt{using} :: $path\n";
 
-	template($opt{layout})->process($opt{using}, $obj, $path, {binmode => ':utf8'})
+	template($opt{layout})->process($opt{using}, \%vars, $path, {binmode => ':utf8'})
 		or croak "template failed: ".template->error;
 }
 
