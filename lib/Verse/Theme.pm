@@ -108,7 +108,7 @@ sub render
 			%vars = ( %vars, %$_ );
 		}
 	}
-	$path{site} = verse->{site};
+	$vars{site} = verse->{site};
 
 	my $path = path($opt{at}, %path);
 	print STDERR "[render] $opt{using} :: $path\n";
