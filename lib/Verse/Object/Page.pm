@@ -15,7 +15,7 @@ sub parse
 	return unless $self;
 
 	if ($self->format eq 'markdown') {
-		$body = markdown($body, verse);
+		$body = markdown($body, $self->replacements, verse);
 	}
 
 	$self->{__attrs}{body} = $body;

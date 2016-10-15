@@ -15,8 +15,8 @@ sub parse
 	return unless $self;
 
 	if ($self->format eq 'markdown') {
-		$teaser = markdown($teaser, verse);
-		$body   = markdown($body,   verse) if $body;
+		$teaser = markdown($teaser, $self->replacements, verse);
+		$body   = markdown($body,   $self->replacements, verse) if $body;
 	}
 	$body = $teaser unless $body;
 	$self->{__attrs}{teaser} = $teaser;

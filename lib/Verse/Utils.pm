@@ -19,11 +19,15 @@ sub vpath
 
 sub markdown
 {
-	my ($code, $config) = @_;
+	my ($code, $replace, $config) = @_;
 
 	# drop the comments
 	$code =~ s|^//.*\n||gm;
 	$code =~ s|(\S)\s+//.*|$1|g;
+
+	for my $search (keys %{$replace || {}}) {
+		$code =~ s/$search/$replace->{$search}/g;
+	}
 
 	$code = Verse::Markdown::format($code);
 	$code =~ s/(href|src)=(["']?)\//$1=$2$config->{site}{url}\//g;

@@ -71,6 +71,8 @@ sub file   { $_[0]->{__file}   }
 sub format { $_[0]->{__format} }
 sub attrs  { $_[0]->{__attrs}  }
 
+sub replacements { $_[0]->{__attrs}{replace} }
+
 my $UUID = 1;
 sub uuid
 {
