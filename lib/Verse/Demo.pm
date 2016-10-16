@@ -6,6 +6,12 @@ use IO::Socket;
 use base 'Exporter';
 our @EXPORT = qw/ demo /;
 
+my %MIME = (
+	'image/svg+xml' => qr/\.svg$/i,
+	'image/jpeg'    => qr/\.jpe?g$/i,
+	'image/png'     => qr/\.png$/i,
+);
+
 sub status
 {
 	my ($c, $m, $s) = @_;
@@ -86,6 +92,12 @@ sub demo
 		bail 404 => 'Not Found' unless -e $path;
 
 		status 200 => 'OK', -s $path;
+		header 'Content-length' => -s $path;
+		for (keys %MIME) {
+			next unless $path =~ m/$MIME{$_}/;
+			header 'Content-type' => $_;
+			last;
+		}
 		print "\r\n";
 		open my $res, "<", $path;
 		print $_ for <$res>;
