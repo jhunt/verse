@@ -99,7 +99,7 @@ sub render
 	my ($obj, %opt) = @_;
 	$obj = [$obj] unless ref $obj eq "ARRAY";
 
-	my %path, %vars;
+	my (%path, %vars) = ((), ());
 	for (@$obj) {
 		if (ref($_) and UNIVERSAL::can($_, 'uuid')) {
 			$path{permalink} = $_->uuid;
