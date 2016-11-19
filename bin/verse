@@ -48,7 +48,7 @@ if ($CMD eq 'new' or $CMD eq 'setup') {
 	!-f "Makefile" or die "Cowardly refusing to clobber your existing Makefile\n";
 
 	Verse::Default::extract($dir);
-	exec "/usr/bin/env editor site.yml; $0 build";
+	exec "$ENV{EDITOR} site.yml; $0 build";
 	exit 0;
 }
 
