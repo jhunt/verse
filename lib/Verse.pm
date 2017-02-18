@@ -11,7 +11,7 @@ our @EXPORT = qw/
 /;
 
 use Verse::Utils;
-use YAML qw/LoadFile Load/;
+use YAML::Old qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
 our $VERSION = '0.8.1';

@@ -2,7 +2,7 @@ package Verse::Jump;
 
 use strict;
 use warnings;
-use YAML qw/LoadFile/;
+use YAML::Old qw/LoadFile/;
 
 sub read
 {
