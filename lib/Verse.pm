@@ -14,7 +14,7 @@ use Verse::Utils;
 use YAML::Old qw/LoadFile Load/;
 use Hash::Merge qw/merge/;
 
-our $VERSION = '0.8.1';
+our $VERSION = '0.9.0';
 
 our $ROOT = $ENV{PWD};
 our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';
