@@ -7,9 +7,13 @@ use Getopt::Long;
 my %OPTIONS = ();
 GetOptions(\%OPTIONS, qw/
 	local|l
+	help|h
+	version|v
 /);
 
-$ENV{VERSE_LOCAL} = 1 if $OPTIONS{local};
+$ENV{VERSE_LOCAL} = 1    if $OPTIONS{local};
+unshift @ARGV, "help"    if $OPTIONS{help};
+unshift @ARGV, "version" if $OPTIONS{version};
 
 sub file
 {
@@ -22,6 +26,10 @@ sub file
 }
 
 my $CMD = shift @ARGV || 'help';
+if ($CMD eq 'version') {
+	print "Verse v$Verse::VERSION\n";
+	exit 0;
+}
 if ($CMD eq 'build') {
 	rhyme;
 

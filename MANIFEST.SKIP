@@ -74,3 +74,9 @@
 
 #avoid dancer default bin script
 ^bin/app.pl$
+
+# avoid "released" binaries
+^verse-.*$
+
+# avoid packaging files
+^debian/.*$

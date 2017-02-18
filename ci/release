@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+bail() {
+	echo >&2 $*
+	exit 1
+}
+
+VERSION=$(perl -Ilib -MVerse -e 'print $Verse::VERSION' 2>/dev/null)
+if [[ -z "$VERSION" ]]; then
+	bail "Unable to determine Verse version from lib/Verse.pm!"
+fi
+
+if [[ -z $(command -v fatpack) ]]; then
+	bail <<EOF
+\`fatpack' utility not found in your \$PATH
+Do you need to install it? (\`cpanm App::FatPack)
+EOF
+fi
+
+if [[ -z $PERL5LIB ]]; then
+	PERL5LIB=lib
+else
+	PERL5LIB=lib:$PERL5LIB
+fi
+
+echo "Packaging verse v$VERSION..."
+fatpack pack bin/verse > verse-$VERSION 2>&1 | grep -v '\.pod isn.t a' || true
+chmod 0755 verse-$VERSION
+ls -lah verse-$VERSION
