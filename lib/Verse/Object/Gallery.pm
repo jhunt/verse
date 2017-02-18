@@ -15,7 +15,7 @@ sub parse
 	return unless $self;
 
 	if (my $stmt = $self->{__attrs}{statement}) {
-		$self->{__attrs}{statement} = markdown($stmt, $stmt->replacements, verse);
+		$self->{__attrs}{statement} = markdown($stmt, $self->replacements, verse);
 	}
 
 	return $self;
