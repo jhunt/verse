@@ -18,3 +18,5 @@ perltidy.LOG
 Verse-*/
 verse-*
 /fatlib
+/docker/lib
+/docker/bin

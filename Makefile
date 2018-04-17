@@ -1,6 +1,9 @@
 default: test
 
-release:
+docker:
+	cd docker && make
+
+release: docker
 	ci/release
 
 test:
@@ -12,4 +15,4 @@ Build: Build.PL
 manifest: Build
 	./Build manifest
 
-.PHONY: default release test check manifest
+.PHONY: default docker release test check manifest
