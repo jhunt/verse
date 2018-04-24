@@ -25,6 +25,6 @@ else
 fi
 
 echo "Packaging verse v$VERSION..."
-fatpack pack bin/verse > verse-$VERSION 2>&1 | grep -v '\.pod isn.t a' || true
+fatpack pack bin/verse 2>&1 | grep -Ev '\.(pod|pm|bundle) isn.t a' > verse-$VERSION || true
 chmod 0755 verse-$VERSION
 ls -lah verse-$VERSION

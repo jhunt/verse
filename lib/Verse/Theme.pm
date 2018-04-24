@@ -7,7 +7,16 @@ use Verse::Object::Page;
 use Verse::Object::Gallery;
 use Verse::Jump;
 use File::Find qw/find/;
-use Template;
+use Template::Alloy;
+
+BEGIN {
+	Template::Alloy->register_function(
+		strftime => sub {
+			my ($ts, $fmt) = @_;
+			return strftime($fmt, mktime($ts));
+		}
+	);
+};
 
 use base Exporter;
 our @EXPORT = qw/
@@ -80,7 +89,7 @@ sub template
 	}
 	return $TT{$layout} if $TT{$layout};
 
-	$TT{$layout} = Template->new({
+	$TT{$layout} = Template::Alloy->new({
 		ENCODING     => "utf8",
 		ABSOLUTE     => 1,
 		INCLUDE_PATH => path("{theme}/templates"),
@@ -111,10 +120,16 @@ sub render
 	$vars{site} = verse->{site};
 
 	my $path = path($opt{at}, %path);
+	(my $dir = $path) =~ s{/[^/]*$}{};
+	if ($dir && ! -d $dir) {
+		print STDERR "[render] mkdir $dir\n";
+		dir $dir;
+	}
 	print STDERR "[render] $opt{using} :: $path\n";
 
-	template($opt{layout})->process($opt{using}, \%vars, $path, {binmode => ':utf8'})
-		or croak "template failed: ".template->error;
+	my $t = template($opt{layouet});
+	$t->process($opt{using}, \%vars, $path)
+		or croak "template failed: ".$t->error;
 }
 
 sub blog    { Verse::Object::Blog }

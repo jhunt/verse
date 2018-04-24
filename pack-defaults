@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Archive::Tar;
+use MIME::Base64 qw/encode_base64/;
+use File::Find qw/find/;
+use File::Temp qw/tempfile/;
+
+open my $Default, "+<", "lib/Verse/Default.pm";
+while (<$Default>) { last if $_ eq '__DATA__'; }
+
+chdir("default");
+my @files;
+find(sub { push @files, $File::Find::name if -f }, ".");
+
+my $tar = Archive::Tar->new;
+$tar->add_files(@files);
+
+my $temp = tempfile();
+$tar->write($temp);
+seek $temp, 0, 0;
+print $Default encode_base64(do { local $/; <$temp> });
+
+close $temp;
+close $Default;
