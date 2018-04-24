@@ -84,7 +84,7 @@ sub demo
 		print STDERR "+> \x1b[36m$req\x1b[0m";
 
 		bail 400 => 'Bad Request'
-			unless $req =~ m|^GET /(\S*) \S+\r\n$|;
+			unless $req =~ m|^GET /(\S*?)(\?\S*)? \S+\r\n$|;
 
 		my $file = $1 || 'index.html';
 		my $path = "$opts{htdocs}/$file";
