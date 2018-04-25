@@ -1,10 +1,12 @@
 package Verse::Utils;
 
 use Verse::Markdown;
+use Clone qw/clone/;
 use base 'Exporter';
 our @EXPORT = qw/
 	vpath
 	markdown
+	merge
 /;
 
 use Verse;
@@ -32,6 +34,50 @@ sub markdown
 	$code = Verse::Markdown::format($code);
 	$code =~ s/(href|src)=(["']?)\//$1=$2$config->{site}{url}\//g;
 	return $code;
+}
+
+my %_merge = (
+	SCALAR => {
+		SCALAR => sub { $_[0] },
+		ARRAY  => sub { $_[0] },
+		HASH   => sub { $_[0] },
+	},
+	ARRAY => {
+		SCALAR => sub { [ @{$_[0]},          $_[1]  ] },
+		ARRAY  => sub { [ @{$_[0]},        @{$_[1]} ] },
+		SCALAR => sub { [ @{$_[0]}, values %{$_[1]} ] },
+	},
+	HASH => {
+		SCALAR => sub { $_[0] },
+		ARRAY  => sub { $_[0] },
+		HASH   => sub {
+			my ($l,$r) = @_;
+			my %new;
+			for my $k (keys %$l) {
+				$new{$k} = exists $r->{$k} ? merge($l->{$k}, $r->{$k})
+										   : clone($l->{$k});
+			}
+			for my $k (grep { ! exists $l->{$_} } keys %$r) {
+				$new{$k} = clone($r->{$k});
+			}
+			return \%new;
+		},
+	},
+);
+
+sub merge
+{
+	my ($l, $r) = @_;
+
+	my $lt = ref $l eq 'HASH'  ? 'HASH'
+	       : ref $l eq 'ARRAY' ? 'ARRAY'
+	       :                     'SCALAR';
+
+	my $rt = ref $r eq 'HASH'  ? 'HASH'
+	       : ref $l eq 'ARRAY' ? 'ARRAY'
+	       :                     'SCALAR';
+
+	return $_merge{$lt}{$rt}->($l,$r);
 }
 
 1;
