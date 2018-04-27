@@ -18,7 +18,7 @@ die "Perl compilation failed, not packing\n" if $?;
 system 'rm -rf pkg/ pkg.tar.gz && mkdir pkg';
 die "Could not create a clean package staging area\n" if $?;
 
-system 'cp -a lib pkg/';
+system 'cp -a lib pkg/ && cp -a ext/* pkg/lib/';
 die "Could not copy library into the package staging area\n" if $?;
 
 # ---
