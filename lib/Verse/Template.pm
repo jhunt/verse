@@ -59,8 +59,6 @@ use constant {
 };
 
 my @NAMES = (
-	'(error token)',
-	'(eot)',
 	'(text block)',
 	'opening "[["',
 	'closing "%]"',
@@ -391,13 +389,15 @@ sub _expr
 sub _fail
 {
 	my ($vm, $e) = @_;
-	die "$vm->{current}: $e.\n";
+	my $f = $vm->{current} || '(unknown file)';
+	$e ||= 'an unknown error has occurred';
+	die "$f: $e.\n";
 }
 
 sub _unexpected
 {
 	my ($vm, $wanted) = @_;
-	_fail("unexpected $NAMES[$vm->{token}[0]], wanted $wanted");
+	_fail($vm, "unexpected $NAMES[$vm->{token}[0]], wanted $wanted");
 }
 
 sub _if
@@ -558,6 +558,11 @@ sub _get
 					$o = $o->[$keys[$j]+0];
 					next;
 				}
+
+			} elsif (ref($o) && ref($o) =~ m/^Verse::Object::/ && $o->can($keys[$j])) {
+				my $method = $keys[$j];
+				$o = $o->$method();
+				next;
 			}
 
 			$ok = 0;
