@@ -5,6 +5,8 @@ use Test::More;
 use Test::Deep;
 use Test::Exception;
 use Test::Output;
+use lib 'lib';
+use lib 'ext';
 
 BEGIN { use_ok 'Verse' or BAIL_OUT "Failed to `use Verse`" }
 

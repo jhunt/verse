@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Deep;
+use lib 'lib';
+use lib 'ext';
 
 BEGIN { use_ok 'Verse::Template'
 		or BAIL_OUT "Could not `use Verse::Template`" }

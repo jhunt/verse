@@ -6,6 +6,8 @@ use Test::More;
 use Test::Deep;
 use File::Slurp qw/read_file/;
 use Cwd qw/chdir cwd/;
+use lib 'lib';
+use lib 'ext';
 
 BEGIN { use_ok 'Verse'
 		or BAIL_OUT "Could not `use Verse`" }

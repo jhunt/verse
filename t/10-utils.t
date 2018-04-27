@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 use Test::More;
+use lib 'lib';
+use lib 'ext';
 
 BEGIN { use_ok 'Verse::Utils' or BAIL_OUT "Could not `use Verse::Utils`" }
 

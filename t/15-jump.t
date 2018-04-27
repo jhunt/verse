@@ -5,6 +5,8 @@ use warnings;
 use Test::More;
 use Test::Deep;
 use Test::Exception;
+use lib 'lib';
+use lib 'ext';
 
 BEGIN { use_ok 'Verse::Jump' or BAIL_OUT "Could not `use Verse::Jump`" }
 
