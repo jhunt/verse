@@ -58,6 +58,37 @@ use constant {
 	T_UNLIKE  => 25, # !~
 };
 
+my @NAMES = (
+	'(error token)',
+	'(eot)',
+	'(text block)',
+	'opening "[["',
+	'closing "%]"',
+	'"for" keyword',
+	'"in" keyword',
+	'"end" keyword',
+	'"if" keyword',
+	'"unless" keyword',
+	'"else" keyword',
+	'variable name',
+	'regular expression',
+	'string',
+	'number',
+	'"not" / "!" keyword',
+	'"&&" / "and" keyword',
+	'"||" / "or" keyword',
+	'opening "(" parenthesis',
+	'closing ")" parenthesis',
+	'equality "==" operator',
+	'inequality "!=" operator',
+	'greater than ">" operator',
+	'greater than or equal to ">=" operator',
+	'less than "<" operator',
+	'less than or equal to "<=" operator',
+	'pattern match "=~" operator',
+	'pattern un-match "!~" operator',
+);
+
 sub _lex
 {
 	# operates on the following hash ($_[0]):
@@ -130,42 +161,44 @@ sub _lex
 
 	} elsif ($c eq '=') {
 		$i++;
-		return [T_ERR] if $i >= $_[0]{len};
+		return [T_ERR, 'ran out of code to parse'] if $i >= $_[0]{len};
 
 		$c = substr($_[0]{src}, $i, 1);
 		$i++; $_[0]{idx} = $i;
 		return [T_EQ]   if $c eq '=';
 		return [T_LIKE] if $c eq '~';
-		return [T_ERR];
+		return [T_ERR, 'unrecognized equality comparison operator'];
 
 	} elsif ($c eq '!') {
-		$i++;
+		$i++; $_[0]{idx} = $i;
 		return [T_NOT] if $i >= $_[0]{len};
 
 		$c = substr($_[0]{src}, $i, 1);
 		$i++; $_[0]{idx} = $i;
 		return [T_NE]     if $c eq '=';
 		return [T_UNLIKE] if $c eq '~';
+		$i--; $_[0]{idx} = $i;
 		return [T_NOT];
 
 	} elsif ($c eq '&') {
+		# FIXME: there are inf. loop edge cases here...
 		$i++;
-		return [T_ERR] if $i >= $_[0]{len};
+		return [T_ERR, 'ran out of code to parse'] if $i >= $_[0]{len};
 
 		$c = substr($_[0]{src}, $i, 1);
 		$i++; $_[0]{idx} = $i;
 		return [T_AND] if $c eq '&';
-		return [T_ERR];
+		return [T_ERR, 'unrecognized AND operator'];
 
 
 	} elsif ($c eq '|') {
 		$i++;
-		return [T_ERR] if $i >= $_[0]{len};
+		return [T_ERR, 'ran out of code to parse'] if $i >= $_[0]{len};
 
 		$c = substr($_[0]{src}, $i, 1);
 		$i++; $_[0]{idx} = $i;
 		return [T_OR] if $c eq '|';
-		return [T_ERR];
+		return [T_ERR, 'unrecognized OR oeprator'];
 
 	} elsif ($c =~ m/[a-zA-Z_]/) {
 		for (; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/^[a-zA-Z0-9_.-]/; $i++) {}
@@ -212,10 +245,10 @@ sub _lex
 				$esc = 1;
 			}
 		}
-		return [T_ERR];
+		return [T_ERR, 'unterminated string literal'];
 	}
 
-	return [T_ERR];
+	return [T_ERR, 'unrecognized token ('.substr($_[0]{src}, $_[0]{idx}, 5).'...)'];
 }
 
 sub _tokenize
@@ -232,7 +265,7 @@ sub _tokenize
 	TOKEN:
 	for (;;) {
 		for my $t (_lex($lexer)) {
-			die "parse failed\n" if $t->[0] == T_ERR;
+			_fail({ current => 'FIXME' }, $t->[1]) if $t->[0] == T_ERR;
 			push @tok, $t;
 			last TOKEN if $t->[0] == T_EOT;
 		}
@@ -253,7 +286,7 @@ sub _at
 
 sub _eat
 {
-	die "syntax error (expecting $_[1])" if !_at($_[0], $_[1]);
+	_unexpected($_[0], $_[2]) if !_at($_[0], $_[1]);
 	_next($_[0]);
 }
 
@@ -293,6 +326,7 @@ sub _i2pf
 
 		if (_at($_[0], T_AND)
 		 || _at($_[0], T_OR)
+		 || _at($_[0], T_NOT)
 		 || _at($_[0], T_EQ)
 		 || _at($_[0], T_NE)
 		 || _at($_[0], T_GT)
@@ -321,7 +355,8 @@ sub _i2pf
 
 sub _expr1
 {
-	die "stack underflow" unless @{$_[0]};
+	die "runtime error in Verse::Template; (expr1) stack underflowed.\n"
+		unless @{$_[0]};
 
 	my $t = pop(@{$_[0]});
 	return ['value',   $t->[1]]   if $t->[0] == T_STRING;
@@ -345,12 +380,24 @@ sub _expr1
 	return         ['or',   $r, $l]  if $t->[0] == T_OR;
 	return         ['and',  $r, $l]  if $t->[0] == T_AND;
 
-	die "bad expr";
+	die "runtime error in Verse::Template; (expr1) was given a bad token to tree-ify (T=$t->[0]).\n";
 }
 
 sub _expr
 {
 	return _expr1([_i2pf($_[0])]);
+}
+
+sub _fail
+{
+	my ($vm, $e) = @_;
+	die "$vm->{current}: $e.\n";
+}
+
+sub _unexpected
+{
+	my ($vm, $wanted) = @_;
+	_fail("unexpected $NAMES[$vm->{token}[0]], wanted $wanted");
 }
 
 sub _if
@@ -360,13 +407,13 @@ sub _if
 	                ['NOOP'],  # consequent
 	                ['NOOP']]; # alternate
 	if (!_at($_[0], T_CLOSE)) {
-		die "syntax error";
+		_unexpected($_[0], 'a closing "%]"');
 	}
 	_next($_[0]);
 
 	$if->[2] = _seq($_[0]);
 	if (_at($_[0], T_END)) {
-		_next($_[0]); _eat($_[0], T_CLOSE);
+		_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
 		return $if;
 	}
 
@@ -376,10 +423,10 @@ sub _if
 			_next($_[0]);
 			$if->[3] = _seq($_[0]);
 			if (_at($_[0], T_END)) {
-				_next($_[0]); _eat($_[0], T_CLOSE);
+				_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
 				return $if;
 			}
-			die "syntax error";
+			_unexpected($_[0], 'a closing "%]"');
 		}
 
 		if (_at($_[0], T_IF)) {
@@ -395,26 +442,26 @@ sub _if
 		}
 	}
 
-	die "syntax error";
+	_unexpected($_[0], 'an "[% end %]" directive, or the "else" keyword');
 }
 
 sub _for
 {
 	my $for = ['FOR'];
 	if (!_at($_[0], T_IDENT)) {
-		die "syntax error";
+		_unexpected($_[0], 'a variable name for iteration');
 	}
 	push @$for, _argn($_[0], 0);
-	_next($_[0]); _eat($_[0], T_IN);
+	_next($_[0]); _eat($_[0], T_IN, 'the "in" keyword');
 	if (!_at($_[0], T_IDENT)) { # FIXME: support expressions?
-		die "syntax error";
+		_unexpected($_[0], 'the name of the list variable to iterate over');
 	}
 	push @$for, _argn($_[0], 0);
-	_next($_[0]); _eat($_[0], T_CLOSE);
+	_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
 	push @$for, _seq($_[0]);
 
-	_eat($_[0], T_END);
-	_eat($_[0], T_CLOSE);
+	_eat($_[0], T_END, 'a "[% end %]" directive');
+	_eat($_[0], T_CLOSE, 'a closing "%]"');
 	return $for;
 }
 
@@ -425,7 +472,7 @@ sub _stmt
 		$stmt = ['DEREF', _argn($_[0], 0)];
 		_next($_[0]);
 		if (!_at($_[0], T_CLOSE)) {
-			die "syntax error";
+			_unexpected($_[0], 'a closing "%]"');
 		}
 		_next($_[0]);
 
@@ -442,7 +489,7 @@ sub _stmt
 		$stmt = _for($_[0]);
 
 	} else {
-		die "syntax error (at $_[0]{token}[0])";
+		_unexpected($_[0], "a variable name, or a control construct like if, unless, or for");
 	}
 
 	return $stmt;
@@ -636,6 +683,7 @@ sub _evaluate
 {
 	my ($ast, $vars) = @_;
 	my $vm = {
+		current => '{unknown}',
 		out => '',
 		env => [$vars || {}],
 	};

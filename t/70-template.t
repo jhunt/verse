@@ -43,6 +43,17 @@ cmp_deeply([Verse::Template::_i2pf({
 	"infix to postfix should handle precedence levels");
 
 ########################################################
+# !x
+cmp_deeply([Verse::Template::_i2pf({
+	token  => [Verse::Template::T_NOT],
+	tokens => [[Verse::Template::T_IDENT, 'x'],
+	           [Verse::Template::T_CLOSE]],
+})],
+	[[Verse::Template::T_IDENT, 'x'],
+	 [Verse::Template::T_NOT]],
+	"infix to postfix should handle unary operators");
+
+########################################################
 # x == 1 or (y == 2 and z == 3)
 cmp_deeply([Verse::Template::_i2pf({
 	token  => [Verse::Template::T_IDENT, 'x'],
@@ -147,6 +158,25 @@ is(_do($src, { set => 0 }),
 is(_do($src, { set => undef }),
 	'v: unset',
 	"evaluating a simple if-conditional (alternate, explicit undef value)");
+
+$src = "[% if !set %]x[% end %]";
+cmp_deeply(Verse::Template::_tokenize($src),
+	[[Verse::Template::T_OPEN],
+	 [Verse::Template::T_IF],
+	 [Verse::Template::T_NOT],
+	 [Verse::Template::T_IDENT, 'set'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_TEXT, 'x'],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_END],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_EOT]],
+	"tokenizing a negated if-conditional");
+cmp_deeply(_parse($src),
+	['SEQ', ['IF', ['not', ['ref', 'set']],
+	               ['SEQ', ['ECHO', 'x']],
+	               ['NOOP']]],
+	"parsing a negated if-conditional");
 
 ########################################################
 $src = "[% if yes %]no[% else %]yes[% end %]";
@@ -364,6 +394,18 @@ is(_do($src, { l => [1,2,3]}),
 	"evaluating a nested for-loop");
 
 ########################################################
+$src = "[% if v %]ok[% end %]";
+is(_do($src, { v => 'test' }),
+	'ok', "expression language understands string truthiness");
+is(_do($src, { v => 0 }),
+	'', "expression language understands string truthiness (negative)");
+
+$src = "[% if !v %]ok[% end %]";
+is(_do($src, { v => 'test' }),
+	'', "expression language understands string falsiness");
+is(_do($src, { v => 0 }),
+	'ok', "expression language understands string falsiness (negative)");
+
 $src = "[% if v == 'test' %]ok[% end %]";
 is(_do($src, { v => 'test' }),
 	'ok', "expression language understands string equality");
