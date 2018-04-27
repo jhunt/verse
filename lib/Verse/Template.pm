@@ -8,18 +8,13 @@ our @EXPORT = qw/
 	template
 /;
 
-sub parse
-{
-	return _parse(_tokenize($_[0]));
-}
-
 sub template
 {
 	my ($templates, $vars, $outfile) = @_;
 	$templates = [$templates] if ref($templates) ne 'ARRAY';
 
 	for my $template (reverse @$templates) {
-		$vars->{content} = evaluate(_read($template), $vars);
+		$vars->{content} = _evaluate(_read($template), $vars);
 		chomp($vars->{content});
 	}
 	return $vars->{content} if !$outfile;
@@ -637,7 +632,7 @@ sub _eval
 	die "semantic error";
 }
 
-sub evaluate
+sub _evaluate
 {
 	my ($ast, $vars) = @_;
 	my $vm = {
