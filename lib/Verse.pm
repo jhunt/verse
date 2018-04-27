@@ -2,6 +2,7 @@ package Verse;
 
 use strict;
 use warnings;
+use Clone qw/clone/;
 use Carp;
 
 use base 'Exporter';
@@ -12,7 +13,6 @@ our @EXPORT = qw/
 
 use Verse::Utils;
 use YAML qw/LoadFile Load/;
-use Hash::Merge qw/merge/;
 
 our $VERSION = '0.9.1';
 
