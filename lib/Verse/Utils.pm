@@ -7,6 +7,7 @@ our @EXPORT = qw/
 	vpath
 	markdown
 	merge
+	slurp
 /;
 
 use Verse;
@@ -78,6 +79,17 @@ sub merge
 	       :                     'SCALAR';
 
 	return $_merge{$lt}{$rt}->($l,$r);
+}
+
+sub slurp
+{
+	my ($file) = @_;
+	open my $fh, "<", $file
+		or die $!;
+	binmode $fh, ':utf8';
+	my $s = do { local $/; <$fh> };
+	close $fh;
+	return $s;
 }
 
 1;

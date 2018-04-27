@@ -52,43 +52,26 @@ my $PWD = cwd;
 	$Verse::ROOT = cwd;
 	Verse::verse(1); # reload
 
-	is(Verse::Theme::template,
-		Verse::Theme::template('site.tt'),
-		"site.tt is the default template");
-
-	isnt(Verse::Theme::template,
-		Verse::Theme::template('alt.tt'),
-		"alt.tt is not site.tt");
-
-	is(Verse::Theme::template,
-		Verse::Theme::template('nonexistent.tt'),
-		"nonexistent layout == default");
-
-	isnt(Verse::Theme::template,
-		Verse::Theme::template('NONE'),
-		"NONE != default template");
-
 	mkdir "htdocs"; # {site}
-
 	Verse::Theme::render({},
 		using  => "test.tt",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
-		"SITE", "Rendered with default layout");
+		"SITE\n", "Rendered with default layout");
 
 	Verse::Theme::render({},
 		using  => "test.tt",
 		layout => "alt.tt",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
-		"ALT", "Rendered with default layout");
+		"ALT\n", "Rendered with default layout");
 
 	Verse::Theme::render({},
 		using  => "test.tt",
 		layout => "NONE",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
-		"from test.tt", "Rendered without layout");
+		"from test.tt\n", "Rendered without layout");
 
 	chdir $PWD;
 	qx(rm -fr t/data/root/blog/htdocs);
@@ -107,7 +90,7 @@ my $PWD = cwd;
 		using  => "unicode.tt",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html", binmode => ':utf8'),
-		"var(∑), literal(∑)", "Rendered unicode");
+		"var(∑), literal(∑)\n", "Rendered unicode");
 
 	chdir $PWD;
 	qx(rm -fr t/data/root/unicode/htdocs);

@@ -6,23 +6,14 @@ use Verse::Object::Blog;
 use Verse::Object::Page;
 use Verse::Object::Gallery;
 use Verse::Jump;
+use Verse::Template;
 use File::Find qw/find/;
-use Template::Alloy;
-
-BEGIN {
-	Template::Alloy->register_function(
-		strftime => sub {
-			my ($ts, $fmt) = @_;
-			return strftime($fmt, mktime($ts));
-		}
-	);
-};
 
 use base Exporter;
 our @EXPORT = qw/
 	path
 	exist copy dir
-	template render
+	render
 	blog page gallery
 	jump
 	diagrams
@@ -78,31 +69,6 @@ sub dir
 	run("mkdir -p ".path($_)) for @_;
 }
 
-my %TT = ();
-sub template
-{
-	my ($layout) = @_;
-
-	if (!$layout or $layout ne 'NONE') {
-		$layout = path("{theme}/layouts/".($layout || 'site.tt'));
-		$layout = path("{theme}/layouts/site.tt") unless -f $layout;
-	}
-	return $TT{$layout} if $TT{$layout};
-
-	$TT{$layout} = Template::Alloy->new({
-		ENCODING     => "utf8",
-		ABSOLUTE     => 1,
-		INCLUDE_PATH => path("{theme}/templates"),
-		($layout eq 'NONE' ? ()
-		                   : (WRAPPER => $layout)),
-		EVAL_PERL    => 1,
-		PRE_CHOMP    => 1,
-		POST_CHOMP   => 1,
-		TRIM         => 1,
-		ANYCASE      => 1,
-	});
-}
-
 sub render
 {
 	my ($obj, %opt) = @_;
@@ -127,9 +93,13 @@ sub render
 	}
 	print STDERR "[render] $opt{using} :: $path\n";
 
-	my $t = template($opt{layouet});
-	$t->process($opt{using}, \%vars, $path)
-		or croak "template failed: ".$t->error;
+	my $tpls = [path("{theme}/templates/".$opt{using})];
+	if (!$opt{layout} or $opt{layout} ne 'NONE') {
+		$opt{layout} = path("{theme}/layouts/".($opt{layout} || 'site.tt'));
+		$opt{layout} = path("{theme}/layouts/site.tt") unless -f $opt{layout};
+		unshift @$tpls, $opt{layout};
+	}
+	template($tpls, \%vars, $path);
 }
 
 sub blog    { Verse::Object::Blog }
@@ -206,10 +176,6 @@ Copies files from B<$from> into B<$to>.
 =head2 dir(@paths)
 
 Creates a set of directories.
-
-=head2 template()
-
-Returns a Template Toolkit object for use in rendering.
 
 =head2 render($obj_or_vars, as => $path, using => $template)
 
