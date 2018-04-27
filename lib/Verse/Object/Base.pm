@@ -9,7 +9,7 @@ use Verse::Utils;
 
 use File::Find qw/find/;
 use File::Slurp qw/read_file/;
-use YAML::Old qw/Load Dump/;
+use YAML qw/Load Dump/;
 use Time::ParseDate qw/parsedate/;
 
 sub type { 'object' }
