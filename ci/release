@@ -11,13 +11,6 @@ if [[ -z "$VERSION" ]]; then
 	bail "Unable to determine Verse version from lib/Verse.pm!"
 fi
 
-if [[ -z $(command -v fatpack) ]]; then
-	bail <<EOF
-\`fatpack' utility not found in your \$PATH
-Do you need to install it? (\`cpanm App::FatPack)
-EOF
-fi
-
 if [[ -z $PERL5LIB ]]; then
 	PERL5LIB=lib
 else
@@ -25,6 +18,4 @@ else
 fi
 
 echo "Packaging verse v$VERSION..."
-fatpack pack bin/verse 2>&1 | grep -Ev '\.(pod|pm|bundle) isn.t a' > verse-$VERSION || true
-chmod 0755 verse-$VERSION
-ls -lah verse-$VERSION
+./pack $VERSION
