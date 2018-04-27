@@ -120,6 +120,17 @@ HTML so that they are absolute, according to B<$config->{site}{url}>
 
 This requires markdown (I</usr/bin/markdown>).
 
+=head2 slurp($path)
+
+Open a file (in utf-8 mode) and reads its contents into a string scalar,
+which is then returned to the caller.  Failure to open or read from the file
+results in a C<die>.
+
+=head2 merge(\%a, \%b)
+
+Merge two hashrefs together, preferring values in C<$a> over those in C<$b>,
+and return the aggregated hashref.
+
 =head1 AUTHOR
 
 James Hunt, C<< <james at niftylogic.com> >>

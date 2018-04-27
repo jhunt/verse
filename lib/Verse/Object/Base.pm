@@ -132,6 +132,10 @@ The format requested by the object.  Defaults to 'plain'.
 
 Hashref of raw object attributes.
 
+=head2 replacements()
+
+Hashref of text substitutions.
+
 =head2 uuid()
 
 Returns a globally unique identifier for this object, used in

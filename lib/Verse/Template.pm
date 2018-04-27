@@ -649,3 +649,82 @@ sub evaluate
 }
 
 1;
+
+=head1 NAME
+
+Verse::Template - Verse's Templating Engine
+
+=head1 DESCRIPTION
+
+Verse themes rely on templating for most of their display.  After all, a
+static site generator that can't sub in values to a tempalte isn't much use.
+
+Verse's templating syntax is straightfoward.  Code goes inside of C<[% ... %]>
+and everything outside of that is considered a literal text block:
+
+    This gets printed verbatim
+    var1 = [% var1 %]
+
+It also supports conditionals:
+
+    [% if is.on %]
+    it is so on
+    [% end %]
+
+All the usual comparison operators are available:
+
+    [% if x >  2 %] ... [% end %]
+    [% if x >= 2 %] ... [% end %]
+    [% if x <  2 %] ... [% end %]
+    [% if x <= 2 %] ... [% end %]
+    [% if x == 2 %] ... [% end %]
+    [% if x != 2 %] ... [% end %]
+
+Text comparison is also supported:
+
+    [% if s == "test" %] ... [% end %]
+    [% if s != "test" %] ... [% end %]
+    [% if s =~ /test/ %] ... [% end %]
+    [% if s !~ /test/ %] ... [% end %]
+
+Finally, looping via the C<for ... in ...> construct works:
+
+    [% for x in some.list %] ... [% end %]
+
+Inside of loops, additional, meta-variables exist:
+
+=over
+
+=item C<loop.n>
+
+The total number of items to iterate over.
+
+=item C<loop.i>
+
+The current index (zero-based).
+
+=item C<loop.first>
+
+Set to true if this is the first iteration of the loop.
+
+=item C<loop.last>
+
+Set to true if this is the last iteration of the loop.
+
+=back
+
+=head1 FUNCTIONS
+
+=head2 template(\@templates, \%vars, [$outfile])
+
+Render a template, given a hierarchy of nested templates and a
+set of variables and their values.  If the optional C<$outfile>
+parameter isn't passed, the rendered output will be returned to
+the caller.  Otherwise, the specified file will be created and
+populated with the output.
+
+=head1 AUTHOR
+
+James Hunt, C<< <james at niftylogic.com> >>
+
+=cut
