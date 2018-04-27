@@ -56,7 +56,7 @@ my %_merge = (
 			my %new;
 			for my $k (keys %$l) {
 				$new{$k} = exists $r->{$k} ? merge($l->{$k}, $r->{$k})
-										   : clone($l->{$k});
+				                           : clone($l->{$k});
 			}
 			for my $k (grep { ! exists $l->{$_} } keys %$r) {
 				$new{$k} = clone($r->{$k});
