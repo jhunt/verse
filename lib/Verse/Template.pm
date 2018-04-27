@@ -648,8 +648,7 @@ sub _eval
 
 	if ($op eq 'DEREF') {
 		my ($v, $ok) = _get($_[0], $args[0]);
-		die "$args[0] not defined\n" unless $ok;
-		$vm->{out} .= $v;
+		$vm->{out} .= $v if $ok;
 		return;
 	}
 
