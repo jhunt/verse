@@ -14,7 +14,8 @@ our @EXPORT = qw/
 use Verse::Utils;
 use YAML qw/LoadFile Load/;
 
-our $VERSION = '0.9.1';
+our $VERSION = "(development)";
+our $BUILD   = "";
 
 our $ROOT = $ENV{PWD};
 our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';

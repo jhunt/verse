@@ -15,4 +15,7 @@ Build: Build.PL
 manifest: Build
 	./Build manifest
 
+clean:
+	rm -f verse-*
+
 .PHONY: default docker release test check manifest

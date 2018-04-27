@@ -33,7 +33,7 @@ $sha1 = substr($sha1, 0, 10);
 if ($VERSION) {
 	$stub_out .= $VERSION;
 } else {
-	$VERSION = '2.x.x-dev';
+	$VERSION = '0.x.x-dev';
 	$stub_out .= "dev-$sha1";
 }
 
@@ -52,8 +52,8 @@ open my $in, "<", "bin/verse"
 	or die "Failed to open bin/verse for reading: $!\n";
 
 while (<$in>) {
-	s/^(\$VERSION) = .*$/$1 = \"$VERSION\";/;
-	s/^(\$BUILD) = .*$/$1 = \" $BUILD\";/;
+	s/^(\$Verse::VERSION) = .*$/$1 = \"$VERSION\";/;
+	s/^(\$Verse::BUILD) = .*$/$1 = \" $BUILD\";/;
 	print $out $_;
 }
 
