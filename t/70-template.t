@@ -85,6 +85,16 @@ cmp_deeply([Verse::Template::_i2pf({
 	"infix to postfix should handle precedence levels");
 
 ########################################################
+cmp_deeply(Verse::Template::_tokenize(''),
+	[[Verse::Template::T_EOT]],
+	"tokenizing the empty template (should have no ops)");
+
+cmp_deeply(_parse(''),
+	['SEQ'], "parsing the empty template (should have no ops)");
+
+is(_do(''), '', "evaluating the template");
+
+########################################################
 $src = 'a single text block';
 cmp_deeply(Verse::Template::_tokenize($src),
 	[[Verse::Template::T_TEXT,$src],

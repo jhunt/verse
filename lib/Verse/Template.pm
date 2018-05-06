@@ -534,7 +534,7 @@ sub _parse
 sub _read
 {
 	my ($template) = @_;
-	my $src = slurp($template)
+	my $src = slurp($template); defined $src
 		or die "failed to parse $template: $!\n";
 	return _parse(_tokenize($src));
 }
