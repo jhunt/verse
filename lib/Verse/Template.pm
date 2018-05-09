@@ -717,14 +717,14 @@ sub _get
 					return scalar @$o, 1;
 				}
 
-				if ($keys[$j] !~ m/^[0-9]+$/ && exists $o->[$keys[$j]+0]) {
+				if ($keys[$j] =~ m/^[0-9]+$/ && exists $o->[$keys[$j]+0]) {
 					$o = $o->[$keys[$j]+0];
 					next;
 				}
 
-			} elsif (ref($o) && ref($o) =~ m/^Verse::Object::/ && $o->can($keys[$j])) {
+			} elsif (ref($o) && ref($o) =~ m/^Verse::Object::/) t{
 				my $method = $keys[$j];
-				$o = $o->$method();
+				$o = $o->can($method) ? $o->$method() : $o->{$method};
 				next;
 			}
 
@@ -739,7 +739,14 @@ sub _get
 
 sub _set
 {
-	$_[0]{env}[0]{$_[1]} = $_[2];
+	my @keys = split(/\./, $_[1]);
+	my $o = $_[0]{env}[0];
+	my $last = pop @keys;
+	for my $k (@keys) {
+		$o->{$k} ||= {};
+		$o = $o->{$k};
+	}
+	$o->{$last} = $_[2];
 }
 
 sub _ev1
