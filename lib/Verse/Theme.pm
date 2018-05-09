@@ -87,7 +87,7 @@ sub render
 
 	my $path = path($opt{at}, %path);
 	(my $dir = $path) =~ s{/[^/]*$}{};
-	if ($dir && ! -d $dir) {
+	if ($dir && $dir ne $path && ! -d $dir) {
 		print STDERR "[render] mkdir $dir\n";
 		dir $dir;
 	}
