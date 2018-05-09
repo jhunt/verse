@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Verse::Utils;
+use POSIX qw/strftime/;
 use base 'Exporter';
 our @EXPORT = qw/
 	template
@@ -116,6 +117,17 @@ my %FUNCS = (
 	format => sub {
 		my (undef, $fmt, @args) = @_;
 		return sprintf($fmt, @args);
+	},
+
+	replace => sub {
+		my (undef, $s, $search, $replace) = @_;
+		$s =~ s/$search/$replace/g;
+		return $s;
+	},
+
+	strftime => sub {
+		my (undef, $ts, $fmt) = @_;
+		return strftime($fmt, localtime($ts || 0));
 	},
 );
 
