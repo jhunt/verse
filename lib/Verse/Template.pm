@@ -575,7 +575,10 @@ sub _filter
 	if (!_at($_[0], T_IDENT)) {
 		_unexpected($_[0], 'a filter name, like "collapse"');
 	}
-	push @$filter, lc(_argn($_[0], 0));
+	my $f = lc(_argn($_[0], 0));
+	_fail($_[0], "undefined filter '$f'") unless $FILTERS{$f};
+
+	push @$filter, $f;
 	_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
 	push @$filter, _seq($_[0]);
 
@@ -586,7 +589,11 @@ sub _filter
 
 sub _apply
 {
-	my $fn = ['APPLY', _argn($_[0], 0)];
+	my $fn = ['APPLY'];
+	my $f = lc(_argn($_[0], 0));
+	_fail($_[0], "undefined function '$f'") unless $FUNCS{$f};
+	push @$fn, $f;
+
 	_next($_[0]);
 	for (;;) {
 		push @$fn, _expr($_[0]);
