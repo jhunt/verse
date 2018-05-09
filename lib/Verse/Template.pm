@@ -851,7 +851,6 @@ sub _eval
 		my $out = $vm->{out};
 		$vm->{out} = '';
 		_eval($vm, $args[1]);
-		print STDERR "FILTERED:{{".$FILTERS{$args[0]}->($vm, $vm->{out})."}}\n";
 		$vm->{out} = $out.$FILTERS{$args[0]}->($vm, $vm->{out});
 		return;
 	}
