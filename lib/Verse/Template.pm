@@ -867,18 +867,32 @@ sub _eval
 		my ($v, $ok) = _get($_[0], $args[1]);
 		$v = [] unless $ok;
 
-		my ($i, $n) = (0, scalar @$v);
-		_set($_[0], 'loop.n', $n);
-		for my $x (@$v) {
-			_set($_[0], 'loop.i', $i);
-			_set($_[0], 'loop.first', $i == 0      ? 1 : 0);
-			_set($_[0], 'loop.last',  $i == $n - 1 ? 1 : 0);
-			_set($_[0], $args[0], $x);
-			_eval($vm, $args[2]);
-			$i++;
+		if (ref($v) eq 'ARRAY') {
+			my ($i, $n) = (0, scalar @$v);
+			_set($_[0], 'loop.n', $n);
+			for my $x (@$v) {
+				_set($_[0], 'loop.i', $i);
+				_set($_[0], 'loop.first', $i == 0      ? 1 : 0);
+				_set($_[0], 'loop.last',  $i == $n - 1 ? 1 : 0);
+				_set($_[0], $args[0], $x);
+				_eval($vm, $args[2]);
+				$i++;
+			}
+			pop @{$_[0]{env}};
+			return;
 		}
-		pop @{$_[0]{env}};
-		return;
+
+		if (ref($v) eq 'HASH') {
+			for my $k (sort keys %$v) {
+				_set($_[0], $args[0].'.key',        $k);
+				_set($_[0], $args[0].'.value', $v->{$k});
+				_eval($vm, $args[2]);
+			}
+			pop @{$_[0]{env}};
+			return;
+		}
+
+		_fail($vm, "cannot iterate over non-list / non-hash values");
 	}
 
 	if ($op eq 'IF') {
