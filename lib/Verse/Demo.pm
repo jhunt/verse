@@ -52,8 +52,12 @@ sub demo
 
 	$opts{htdocs} = "$ENV{PWD}/$opts{htdocs}";
 
+	$opts{listen} = "*:$opts{listen}"
+		if $opts{listen} =~ m/^\d+$/;
+
 	die "bad 'listen' option: $opts{listen}\n"
 		unless $opts{listen} =~ m/^(.+):(\d+)$/;
+
 	my ($host, $port) = ($1, $2);
 
 	chdir "/";
@@ -67,7 +71,8 @@ sub demo
 	) or die "unable to bind $opts{listen}: $!\n";
 	binmode $socket;
 
-	print STDERR ">> \x1b[38;5;2mVerse\x1b[0m [demo] web server listening on \x1b[38;5;4mhttp://$opts{listen}\x1b[0m\n";
+	my $url = "http://" . ($host eq '*' ? "127.0.0.1" : $host) . ":$port";
+	print STDERR ">> \x1b[38;5;2mVerse\x1b[0m [demo] web server listening on \x1b[38;5;4m$url\x1b[0m\n";
 
 	local $SIG{CLD} = 'IGNORE';
 	while (my $client = $socket->accept) {

@@ -45,7 +45,8 @@ if ($CMD eq 'build') {
 }
 
 if ($CMD eq 'run' or $CMD eq 'demo') {
-	demo htdocs => 'htdocs';
+	demo htdocs => 'htdocs',
+	     listen => $ARGV[0] || '*:4000';
 }
 
 if ($CMD eq 'new' or $CMD eq 'setup') {
