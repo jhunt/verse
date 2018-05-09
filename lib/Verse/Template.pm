@@ -111,6 +111,10 @@ my %FILTERS = (
 		$in =~ s/^\s|\s$//g;
 		return $in;
 	},
+
+	cdata => sub {
+		return "<![CDATA[".$_[1]."]]>";
+	},
 );
 
 my %FUNCS = (
