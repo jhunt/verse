@@ -56,6 +56,14 @@ use constant {
 	T_LE      => 23, # <=
 	T_LIKE    => 24, # =~
 	T_UNLIKE  => 25, # !~
+	T_ASSIGN  => 26, # =
+	T_ADD     => 27, # +
+	T_SUB     => 28, # -
+	T_MUL     => 29, # *
+	T_DIV     => 30, # /
+	T_FILTER  => 31, # filter
+	T_COMMA   => 32, # "," delimiter
+	T_FUNCALL => 33, # <IDENT>(
 };
 
 my @NAMES = (
@@ -85,6 +93,30 @@ my @NAMES = (
 	'less than or equal to "<=" operator',
 	'pattern match "=~" operator',
 	'pattern un-match "!~" operator',
+	'assignment "=" operator',
+	'"+" addition operator',
+	'"-" subtraction operator',
+	'"*" multiplication operator',
+	'"/" division operator',
+	'"filter" keyword',
+	'"," argument delimiter',
+	'function call',
+);
+
+my %FILTERS = (
+	collapse => sub {
+		my (undef, $in) = @_;
+		$in =~ s/\s+/ /g;
+		$in =~ s/^\s|\s$//g;
+		return $in;
+	},
+);
+
+my %FUNCS = (
+	format => sub {
+		my (undef, $fmt, @args) = @_;
+		return sprintf($fmt, @args);
+	},
 );
 
 sub _lex
@@ -110,6 +142,11 @@ sub _lex
 
 				if (substr($_[0]{src}, $i, 1) eq '%') {
 					my $lit = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx} - 1);
+
+					if (substr($_[0]{src}, $i+1, 1) eq '-') {
+						$i++;
+						$lit =~ s/\s+$//;
+					}
 					$_[0]{idx} = $i + 1;
 					$_[0]{lit} = 0;
 					return $lit ? ([T_TEXT, $lit], [T_OPEN])
@@ -131,7 +168,12 @@ sub _lex
 
 	# look for tokens
 	my $c = substr($_[0]{src}, $i, 1);
-	if ($c eq '(') {
+
+	if ($c eq ',') {
+		$_[0]{idx} = ++$i;
+		return [T_COMMA];
+
+	} elsif ($c eq '(') {
 		$_[0]{idx} = ++$i;
 		return [T_OPAR];
 
@@ -154,8 +196,29 @@ sub _lex
 			$i++; $_[0]{idx} = $i;
 			return [$c eq '<' ? T_LE : T_GE];
 		}
-		$i--; $_[0]{idx} = $i;
+		$_[0]{idx} = $i;
 		return [$c eq '<' ? T_LT : T_GT];
+
+	} elsif ($c eq '+') { $i++; $_[0]{idx} = $i; return [T_ADD];
+	} elsif ($c eq '/') { $i++; $_[0]{idx} = $i; return [T_DIV];
+	} elsif ($c eq '*') { $i++; $_[0]{idx} = $i; return [T_MUL];
+
+	# '-' might be the start of '-%]'...
+	} elsif ($c eq '-') {
+		$i++; $c = substr($_[0]{src}, $i, 1);
+		if ($c ne '%') {
+			$_[0]{idx} = $i;
+			return [T_SUB];
+		}
+
+		$i++; $c = substr($_[0]{src}, $i, 1);
+		return [T_ERR, 'malformed -%] sequence encountered'] unless $c eq ']';
+
+		# eat whitespace
+		for ($i++; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/^\s/; $i++) {}
+		$_[0]{idx} = $i;
+		$_[0]{lit} = 1;
+		return [T_CLOSE];
 
 	} elsif ($c eq '=') {
 		$i++;
@@ -165,7 +228,9 @@ sub _lex
 		$i++; $_[0]{idx} = $i;
 		return [T_EQ]   if $c eq '=';
 		return [T_LIKE] if $c eq '~';
-		return [T_ERR, 'unrecognized equality comparison operator'];
+
+		$i--; $_[0]{idx} = $i;
+		return [T_ASSIGN];
 
 	} elsif ($c eq '!') {
 		$i++; $_[0]{idx} = $i;
@@ -196,31 +261,13 @@ sub _lex
 		$c = substr($_[0]{src}, $i, 1);
 		$i++; $_[0]{idx} = $i;
 		return [T_OR] if $c eq '|';
-		return [T_ERR, 'unrecognized OR oeprator'];
+		return [T_ERR, 'unrecognized OR operator'];
 
-	} elsif ($c =~ m/[a-zA-Z_]/) {
-		for (; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/^[a-zA-Z0-9_.-]/; $i++) {}
-		my $lexeme = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx});
-		$_[0]{idx} = $i;
-		return [T_FOR]     if lc($lexeme) eq 'for';
-		return [T_IN]      if lc($lexeme) eq 'in';
-		return [T_END]     if lc($lexeme) eq 'end';
-		return [T_IF]      if lc($lexeme) eq 'if';
-		return [T_UNLESS]  if lc($lexeme) eq 'unless';
-		return [T_ELSE]    if lc($lexeme) eq 'else';
-		return [T_NOT]     if lc($lexeme) eq 'not';
-		return [T_AND]     if lc($lexeme) eq 'and';
-		return [T_OR]      if lc($lexeme) eq 'or';
-		return [T_IDENT, $lexeme];
-
-	} elsif ($c =~ m/[0-9]/) {
-		$i++;
-		for (; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/[0-9.]/; $i++) {}
-		my $lexeme = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx});
-		$_[0]{idx} = $i;
-		return [T_NUMBER, $lexeme];
-
-	} elsif ($c eq '"' || $c eq "'" || $c eq '/') {
+	} elsif ($c eq '"' || $c eq "'" || ($c eq 'm' && substr($_[0]{src}, $i+1, 1) eq '/')) {
+		if ($c eq 'm') {
+			$i++;
+			$c = substr($_[0]{src}, $i, 1);
+		}
 		my $q = $c;
 		my @chunks;
 		my $esc = 0;
@@ -244,6 +291,34 @@ sub _lex
 			}
 		}
 		return [T_ERR, 'unterminated string literal'];
+	} elsif ($c =~ m/[a-zA-Z_]/) {
+		for (; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/^[a-zA-Z0-9_.-]/; $i++) {}
+		my $lexeme = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx});
+		if (substr($_[0]{src}, $i, 1) eq '(') {
+			$_[0]{idx} = ++$i;
+			return [T_FUNCALL, $lexeme];
+		}
+
+		$_[0]{idx} = $i;
+		return [T_FOR]     if lc($lexeme) eq 'for';
+		return [T_IN]      if lc($lexeme) eq 'in';
+		return [T_END]     if lc($lexeme) eq 'end';
+		return [T_IF]      if lc($lexeme) eq 'if';
+		return [T_UNLESS]  if lc($lexeme) eq 'unless';
+		return [T_ELSE]    if lc($lexeme) eq 'else';
+		return [T_NOT]     if lc($lexeme) eq 'not';
+		return [T_AND]     if lc($lexeme) eq 'and';
+		return [T_OR]      if lc($lexeme) eq 'or';
+		return [T_FILTER]  if lc($lexeme) eq 'filter';
+		return [T_IDENT, $lexeme];
+
+	} elsif ($c =~ m/[0-9]/) {
+		$i++;
+		for (; $i < $_[0]{len} && substr($_[0]{src}, $i, 1) =~ m/[0-9.]/; $i++) {}
+		my $lexeme = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx});
+		$_[0]{idx} = $i;
+		return [T_NUMBER, $lexeme];
+
 	}
 
 	return [T_ERR, 'unrecognized token ('.substr($_[0]{src}, $_[0]{idx}, 5).'...)'];
@@ -296,11 +371,14 @@ sub _argn
 sub _i2pf
 {
 	my (%prec, @out, @ops);
-	$prec{$_} = 3 for ((T_OPAR, T_CPAR));
-	$prec{$_} = 2 for ((T_NOT));
+	$prec{$_} = 5 for ((T_OPAR, T_CPAR));
+	$prec{$_} = 4 for ((T_NOT));
+	$prec{$_} = 3 for ((T_MUL, T_DIV));
+	$prec{$_} = 2 for ((T_ADD, T_SUB));
 	$prec{$_} = 1 for ((T_EQ, T_NE, T_LIKE, T_UNLIKE, T_GT, T_GE, T_LT, T_LE));
 	$prec{$_} = 0 for ((T_AND, T_OR));
 
+	my $nest = 0;
 	for (;;) {
 		if (_at($_[0], T_IDENT)
 		 || _at($_[0], T_NUMBER)
@@ -312,14 +390,15 @@ sub _i2pf
 
 		if (_at($_[0], T_OPAR)) {
 			push @ops, $_[0]{token};
-			_next($_[0]); next;
+			$nest++; _next($_[0]); next;
 		}
 		if (_at($_[0], T_CPAR)) {
+			last unless $nest;
 			while (@ops && $ops[@ops - 1][0] != T_OPAR) {
 				push @out, pop(@ops);
 			}
 			pop(@ops);
-			_next($_[0]); next;
+			$nest--; _next($_[0]); next;
 		}
 
 		if (_at($_[0], T_AND)
@@ -332,7 +411,11 @@ sub _i2pf
 		 || _at($_[0], T_LT)
 		 || _at($_[0], T_LE)
 		 || _at($_[0], T_LIKE)
-		 || _at($_[0], T_UNLIKE)) {
+		 || _at($_[0], T_UNLIKE)
+		 || _at($_[0], T_ADD)
+		 || _at($_[0], T_SUB)
+		 || _at($_[0], T_MUL)
+		 || _at($_[0], T_DIV)) {
 
 			while (@ops && $prec{$ops[@ops - 1][0]} > $prec{$_[0]{token}[0]}) {
 				last if $ops[@ops - 1][0] == T_OPAR;
@@ -366,6 +449,11 @@ sub _expr1
 
 	my $l = _expr1($_[0]);
 	my $r = _expr1($_[0]);
+
+	return ['+', $r, $l] if $t->[0] == T_ADD;
+	return ['-', $r, $l] if $t->[0] == T_SUB;
+	return ['/', $r, $l] if $t->[0] == T_DIV;
+	return ['*', $r, $l] if $t->[0] == T_MUL;
 
 	return         ['eq',   $r, $l]  if $t->[0] == T_EQ;
 	return ['not', ['eq',   $r, $l]] if $t->[0] == T_NE;
@@ -465,16 +553,59 @@ sub _for
 	return $for;
 }
 
+sub _filter
+{
+	my $filter = ['FILTER'];
+	if (!_at($_[0], T_IDENT)) {
+		_unexpected($_[0], 'a filter name, like "collapse"');
+	}
+	push @$filter, lc(_argn($_[0], 0));
+	_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
+	push @$filter, _seq($_[0]);
+
+	_eat($_[0], T_END, 'a "[% end %]" directive');
+	_eat($_[0], T_CLOSE, 'a closing "%]"');
+	return $filter;
+}
+
+sub _apply
+{
+	my $fn = ['APPLY', _argn($_[0], 0)];
+	_next($_[0]);
+	for (;;) {
+		push @$fn, _expr($_[0]);
+		if (_at($_[0], T_CPAR))  { _next($_[0]); last; }
+		if (_at($_[0], T_COMMA)) { _next($_[0]); next; }
+		_unexpected($_[0], 'a comma (argument delimiter) or a closing parenthesis');
+	}
+	_eat($_[0], T_CLOSE, 'a closing "%]"'); # FIXME: prohibits nesting functions
+	return $fn;
+}
+
 sub _stmt
 {
 	my $stmt = ['NOOP'];
 	if (_at($_[0], T_IDENT)) {
-		$stmt = ['DEREF', _argn($_[0], 0)];
+		my $var = _argn($_[0], 0);
 		_next($_[0]);
-		if (!_at($_[0], T_CLOSE)) {
-			_unexpected($_[0], 'a closing "%]"');
+		if (_at($_[0], T_CLOSE)) {
+			$stmt = ['DEREF', $var];
+			_next($_[0]);
+
+		} elsif (_at($_[0], T_ASSIGN)) {
+			_next($_[0]);
+			$stmt = ['LET', $var, _expr($_[0])];
+			if (!_at($_[0], T_CLOSE)) {
+				_unexpected($_[0], 'a closing "%]"');
+			}
+			_next($_[0]);
+
+		} else {
+			_unexpected($_[0], 'a closing "%]" or an assignment operator "="');
 		}
-		_next($_[0]);
+
+	} elsif (_at($_[0], T_FUNCALL)) {
+		$stmt = _apply($_[0]);
 
 	} elsif (_at($_[0], T_IF)) {
 		_next($_[0]);
@@ -487,6 +618,10 @@ sub _stmt
 	} elsif (_at($_[0], T_FOR)) {
 		_next($_[0]);
 		$stmt = _for($_[0]);
+
+	} elsif (_at($_[0], T_FILTER)) {
+		_next($_[0]);
+		$stmt = _filter($_[0]);
 
 	} else {
 		_unexpected($_[0], "a variable name, or a control construct like if, unless, or for");
@@ -507,7 +642,7 @@ sub _seq
 
 		if (_at($_[0], T_OPEN)) {
 			_next($_[0]);
-			# if we hit an [[ end ]] block, return early
+			# if we hit an [% end %] block, return early
 			return $seq if _at($_[0], T_END)
 			            or _at($_[0], T_ELSE);
 
@@ -554,6 +689,11 @@ sub _get
 				}
 
 			} elsif (ref($o) eq 'ARRAY') {
+				# handle array.size
+				if ($keys[$j] eq 'size' && $j == @keys - 1) {
+					return scalar @$o, 1;
+				}
+
 				if ($keys[$j] !~ m/^[0-9]+$/ && exists $o->[$keys[$j]+0]) {
 					$o = $o->[$keys[$j]+0];
 					next;
@@ -629,6 +769,26 @@ sub _ev1
 		    >= _ev1($_[0], $_[1][2])+0; # rhs
 	}
 
+	if ($_[1][0] eq '+') {
+		return _ev1($_[0], $_[1][1])    # lhs
+		     + _ev1($_[0], $_[1][2]);   # rhs
+	}
+
+	if ($_[1][0] eq '-') {
+		return _ev1($_[0], $_[1][1])    # lhs
+		     - _ev1($_[0], $_[1][2]);   # rhs
+	}
+
+	if ($_[1][0] eq '*') {
+		return _ev1($_[0], $_[1][1])    # lhs
+		     * _ev1($_[0], $_[1][2]);   # rhs
+	}
+
+	if ($_[1][0] eq '/') {
+		return _ev1($_[0], $_[1][1])    # lhs
+		     / _ev1($_[0], $_[1][2]);   # rhs
+	}
+
 	die "bad expr $_[1][0]";
 }
 
@@ -657,10 +817,26 @@ sub _eval
 		return;
 	}
 
+	if ($op eq 'FILTER') {
+		my $out = $vm->{out};
+		$vm->{out} = '';
+		_eval($vm, $args[1]);
+		print STDERR "FILTERED:{{".$FILTERS{$args[0]}->($vm, $vm->{out})."}}\n";
+		$vm->{out} = $out.$FILTERS{$args[0]}->($vm, $vm->{out});
+		return;
+	}
+
+	if ($op eq 'APPLY') {
+		# FIXME: precludes nesting fun calls; need ['PRINT', ['APPLY' ...]]
+		my $fn = $args[0]; shift @args;
+		$vm->{out} .= $FUNCS{$fn}->($vm, map { _ev1($vm, $_) } @args);
+		return;
+	}
+
 	if ($op eq 'FOR') {
 		push @{$_[0]{env}}, {};
 		my ($v, $ok) = _get($_[0], $args[1]);
-		die "$args[1] not defined\n" unless $ok;
+		$v = [] unless $ok;
 
 		my ($i, $n) = (0, scalar @$v);
 		_set($_[0], 'loop.n', $n);
@@ -680,7 +856,12 @@ sub _eval
 		return _eval($vm, !! _ev1($_[0], $args[0]) ? $args[1] : $args[2]);
 	}
 
-	die "semantic error";
+	if ($op eq 'LET') {
+		_set($_[0], $args[0], _ev1($vm, $args[1]));
+		return;
+	}
+
+	die "semantic error (unhandled op '$op')";
 }
 
 sub _evaluate

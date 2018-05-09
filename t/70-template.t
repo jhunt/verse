@@ -22,6 +22,15 @@ sub _do {
 my $src;
 
 ########################################################
+# 1
+cmp_deeply([Verse::Template::_i2pf({
+	token  => [Verse::Template::T_NUMBER, '1'],
+	tokens => [[Verse::Template::T_CLOSE]],
+})],
+	[[Verse::Template::T_NUMBER, '1']],
+	"infix to postfix should handle a single value");
+
+########################################################
 # x == 1 or y == 2
 cmp_deeply([Verse::Template::_i2pf({
 	token  => [Verse::Template::T_IDENT, 'x'],
@@ -129,10 +138,76 @@ is(_do($src, { type => 'verse' }),
 	"evaluating a composite TEXT - OP - TEXT template");
 
 ########################################################
+$src = 'a [%- type -%] block';
+cmp_deeply(Verse::Template::_tokenize($src),
+	[[Verse::Template::T_TEXT, 'a'],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'type'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_TEXT, 'block'],
+	 [Verse::Template::T_EOT]],
+	"tokenizing a composite TEXT - OP - TEXT template (trim)");
+cmp_deeply(_parse($src),
+	['SEQ', ['ECHO', 'a'],
+	        ['DEREF', 'type'],
+	        ['ECHO', 'block']],
+	"parsing a composite TEXT - OP - TEXT template (trim)");
+is(_do($src, { type => 'nono' }),
+	'anonoblock',
+	"evaluating a composite TEXT - OP - TEXT template (trim)");
+
+########################################################
 $src = "[% a.dotted.var %]";
 is(_do($src, { a => { dotted => { var => 'wins' } } }),
 	'wins',
 	"var deref can handle dotted variables");
+
+########################################################
+$src = "[% x = 1 %][% x %]";
+cmp_deeply(Verse::Template::_tokenize($src),
+	[[Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'x'],
+	 [Verse::Template::T_ASSIGN],
+	 [Verse::Template::T_NUMBER, '1'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'x'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_EOT]],
+	"tokenizing assignment");
+cmp_deeply(_parse($src),
+	['SEQ', ['LET', 'x', ['value', 1]],
+	        ['DEREF', 'x']],
+	"parsing assignment");
+is(_do($src, { x => 42 }), "1",
+	"evaluating assignment + echo (pre-existing binding)");
+is(_do($src), "1",
+	"evaluating assignment + echo (no binding)");
+
+########################################################
+$src = "[% n = 1 %][% n %], [% n = n + 1 %][% n %]";
+cmp_deeply(Verse::Template::_tokenize($src),
+	[[Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'n'],
+	 [Verse::Template::T_ASSIGN],
+	 [Verse::Template::T_NUMBER, '1'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'n'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_TEXT, ', '],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'n'],
+	 [Verse::Template::T_ASSIGN],
+	 [Verse::Template::T_IDENT, 'n'],
+	 [Verse::Template::T_ADD],
+	 [Verse::Template::T_NUMBER, '1'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_OPEN],
+	 [Verse::Template::T_IDENT, 'n'],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_EOT]],
+	"tokenizing re-assignment");
 
 ########################################################
 $src = "v: [% if set %]is not [% end %]unset";
@@ -404,6 +479,26 @@ is(_do($src, { l => [1,2,3]}),
 	"evaluating a nested for-loop");
 
 ########################################################
+$src = "[% format('test %s', 'value') %]";
+cmp_deeply(Verse::Template::_tokenize($src),
+	[[Verse::Template::T_OPEN],
+	 [Verse::Template::T_FUNCALL, 'format'],
+	 [Verse::Template::T_STRING, 'test %s'],
+	 [Verse::Template::T_COMMA],
+	 [Verse::Template::T_STRING, 'value'],
+	 [Verse::Template::T_CPAR],
+	 [Verse::Template::T_CLOSE],
+	 [Verse::Template::T_EOT]],
+	"tokenizing a function application");
+cmp_deeply(_parse($src),
+	['SEQ', ['APPLY', 'format',
+	                     ['value', 'test %s'],
+	                     ['value', 'value']]],
+	"parsing a function application");
+is(_do($src), 'test value',
+	"evaluating a function application");
+
+########################################################
 $src = "[% if v %]ok[% end %]";
 is(_do($src, { v => 'test' }),
 	'ok', "expression language understands string truthiness");
@@ -444,13 +539,13 @@ is(_do($src, { x => 1, y => 1 }),
 is(_do($src, { x => 1, y => 5 }),
 	'', "expression language understands compound and-conditionals (negative)");
 
-$src = "[% if x =~ /test/ %]ok[% end %]";
+$src = "[% if x =~ m/test/ %]ok[% end %]";
 is(_do($src, { x => 'a testing string' }),
 	'ok', "expression language understands regex matches");
 is(_do($src, { x => 'production' }),
 	'', "expression language understands regex matches (negative)");
 
-$src = "[% if x !~ /test/ %]ok[% end %]";
+$src = "[% if x !~ m/test/ %]ok[% end %]";
 is(_do($src, { x => 'a testing string' }),
 	'', "expression language understands regex un-matches");
 is(_do($src, { x => 'production' }),
