@@ -723,7 +723,7 @@ sub _get
 					next;
 				}
 
-			} elsif (ref($o) && ref($o) =~ m/^Verse::Object::/) t{
+			} elsif (ref($o) && ref($o) =~ m/^Verse::Object::/) {
 				my $method = $keys[$j];
 				$o = $o->can($method) ? $o->$method() : $o->{$method};
 				next;
