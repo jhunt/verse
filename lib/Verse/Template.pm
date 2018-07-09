@@ -15,7 +15,7 @@ sub template
 	$templates = [$templates] if ref($templates) ne 'ARRAY';
 
 	for my $template (reverse @$templates) {
-		$vars->{content} = _evaluate(_read($template), $vars);
+		$vars->{content} = _evaluate(_read($template), $vars, $template);
 		chomp($vars->{content});
 	}
 	return $vars->{content} if !$outfile;
@@ -682,8 +682,9 @@ sub _seq
 sub _parse
 {
 	my $parser = {
-		tokens => $_[0],
-		token  => undef,
+		tokens  => $_[0],
+		token   => undef,
+		current => $_[1],
 	};
 	_next($parser);
 	return _seq($parser);
@@ -694,7 +695,7 @@ sub _read
 	my ($template) = @_;
 	my $src = slurp($template); defined $src
 		or die "failed to parse $template: $!\n";
-	return _parse(_tokenize($src));
+	return _parse(_tokenize($src), $template);
 }
 
 sub _get
@@ -909,9 +910,9 @@ sub _eval
 
 sub _evaluate
 {
-	my ($ast, $vars) = @_;
+	my ($ast, $vars, $file) = @_;
 	my $vm = {
-		current => '{unknown}',
+		current => $file || '{unknown}',
 		out => '',
 		env => [$vars || {}],
 	};
