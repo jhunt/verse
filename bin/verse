@@ -60,7 +60,8 @@ if ($CMD eq 'new' or $CMD eq 'setup') {
 	!-f "Makefile" or die "Cowardly refusing to clobber your existing Makefile\n";
 
 	Verse::Default::extract($dir);
-	exec "$ENV{EDITOR} site.yml; $0 build";
+	my $vim = $ENV{EDITOR} || 'vi';
+	exec "$vim site.yml; $0 build";
 	exit 0;
 }
 
