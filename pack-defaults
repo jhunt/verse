@@ -7,8 +7,14 @@ use MIME::Base64 qw/encode_base64/;
 use File::Find qw/find/;
 use File::Temp qw/tempfile/;
 
-open my $Default, "+<", "lib/Verse/Default.pm";
-while (<$Default>) { last if $_ eq '__DATA__'; }
+open my $out, ">", "lib/Verse/Default.o";
+open my $in,  "<", "lib/Verse/Default.pm";
+while (<$in>) {
+	print $out $_;
+	chomp;
+	last if $_ eq '__DATA__';
+}
+close $in;
 
 chdir("default");
 my @files;
@@ -20,7 +26,11 @@ $tar->add_files(@files);
 my $temp = tempfile();
 $tar->write($temp);
 seek $temp, 0, 0;
-print $Default encode_base64(do { local $/; <$temp> });
+print $out encode_base64(do { local $/; <$temp> });
 
 close $temp;
-close $Default;
+close $out;
+
+chdir("..");
+rename("lib/Verse/Default.o", "lib/Verse/Default.pm");
+print "PACKED DEFAULTS!\n";

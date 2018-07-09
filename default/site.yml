@@ -20,14 +20,6 @@ site:
   canon:    http://example.com
 
   theme: default
-  style: city
-  #
-  # 'styles' let you change the header image,
-  # and general color scheme, without having
-  # to write your own theme from scratch.
-  #
-  # try: beach, city, forest, mountain, snow
-  #
 
 
   # Here you can tell Verse about your Social Media identities;
