@@ -42,6 +42,9 @@ sub parse_config_string
 	$cfg->{paths}{theme} = $cfg->{paths}{root}."/theme/".$cfg->{site}{theme}
 		unless exists $cfg->{paths}{theme};
 
+	$cfg->{site}{buster} = time
+		unless exists $cfg->{site}{buster};
+
 	$cfg;
 }
 
