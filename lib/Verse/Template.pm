@@ -115,6 +115,10 @@ my %FILTERS = (
 	cdata => sub {
 		return "<![CDATA[".$_[1]."]]>";
 	},
+
+	markdown => sub {
+		return markdown($_[1]);
+	},
 );
 
 my %FUNCS = (

@@ -33,7 +33,8 @@ sub markdown
 	}
 
 	$code = Verse::Markdown::format($code);
-	$code =~ s/(href|src)=(["']?)\//$1=$2$config->{site}{url}\//g;
+	$code =~ s/(href|src)=(["']?)\//$1=$2$config->{site}{url}\//g
+		if $config;
 	return $code;
 }
 
