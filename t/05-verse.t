@@ -44,8 +44,9 @@ site:
 EOF
 	cmp_deeply(Verse::parse_config_string($config), {
 			site => {
-				title => 'Default Settings',
-				theme => 'default', # DEFAULT
+				title  => 'Default Settings',
+				theme  => 'default', # DEFAULT
+				buster => ignore,
 			},
 			paths => { # ALL DEFAULT
 				site  => '/u/sites/example.com/htdocs',
@@ -68,9 +69,10 @@ paths:
 EOF
 	cmp_deeply(Verse::parse_config_string($config), {
 			site => {
-				title => 'Overrides',
-				url   => 'http://www.example.com',
-				theme => 'override',
+				title  => 'Overrides',
+				url    => 'http://www.example.com',
+				theme  => 'override',
+				buster => ignore,
 			},
 			paths => {
 				site  => '/u/sites/example.com/site_root',
