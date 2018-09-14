@@ -119,6 +119,18 @@ my %FILTERS = (
 	markdown => sub {
 		return markdown($_[1]);
 	},
+
+	uriencode => sub {
+		$_[1] =~ s/ /+/g;
+		$_[1] =~ s/([^A-Za-z0-9\+-])/sprintf("%%%02X", ord($1))/seg;
+		return $_[1];
+	},
+
+	uridecode => sub {
+		$_[1] =~ s/\%([A-Fa-f0-9]{2})/pack('C', hex($1))/seg;
+		$_[1] =~ s/\+/ /g;
+		return $_[1];
+	},
 );
 
 my %FUNCS = (
