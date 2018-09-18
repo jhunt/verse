@@ -2,7 +2,7 @@ default: test
 
 docker:
 	cp verse docker/verse
-	docker build docker/ -t huntprod/verse
+	docker build -t huntprod/verse docker/
 
 verse:
 	rm -f verse-*
@@ -14,7 +14,7 @@ release:
 	@echo "OK.  VERSION=$(VERSION)"
 	make verse
 	make docker
-	docker image tag huntprod/verse huntprod/verse:$(VERSION)
+	docker tag -f huntprod/verse huntprod/verse:$(VERSION)
 	docker push huntprod/verse
 	docker push huntprod/verse:$(VERSION)
 
