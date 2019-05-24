@@ -14,7 +14,7 @@ release:
 	@echo "OK.  VERSION=$(VERSION)"
 	make verse
 	make docker
-	docker tag -f huntprod/verse huntprod/verse:$(VERSION)
+	docker tag huntprod/verse huntprod/verse:$(VERSION)
 	docker push huntprod/verse
 	docker push huntprod/verse:$(VERSION)
 
