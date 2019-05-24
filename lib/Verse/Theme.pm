@@ -86,13 +86,16 @@ sub render
 	}
 	$vars{site} = verse->{site};
 
-	my $path = path($opt{at}, %path);
-	(my $dir = $path) =~ s{/[^/]*$}{};
-	if ($dir && $dir ne $path && ! -d $dir) {
-		print STDERR "[render] mkdir $dir\n";
-		dir $dir;
+	my $path = undef;
+	if ($opt{at}) {
+		$path = path($opt{at}, %path);
+		(my $dir = $path) =~ s{/[^/]*$}{};
+		if ($dir && $dir ne $path && ! -d $dir) {
+			print STDERR "[render] mkdir $dir\n";
+			dir $dir;
+		}
+		print STDERR "[render] $opt{using} :: $path\n";
 	}
-	print STDERR "[render] $opt{using} :: $path\n";
 
 	my $tpls = [path("{theme}/templates/".$opt{using})];
 	if (!$opt{layout} or $opt{layout} ne 'NONE') {
