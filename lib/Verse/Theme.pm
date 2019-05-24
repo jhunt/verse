@@ -17,6 +17,7 @@ our @EXPORT = qw/
 	blog page gallery
 	jump
 	diagrams
+	readf writef
 /;
 
 sub path
@@ -152,6 +153,36 @@ sub diagrams
 	}
 }
 
+sub readf
+{
+	my ($path) = @_;
+
+	$path = path($path);
+	open my $fh, "<", $path
+		or die "$path: $!\n";
+
+	binmode $fh, ':utf8';
+	my $contents = do { local $/; <$fh>; };
+	close $fh;
+
+	return $contents;
+}
+
+sub writef
+{
+	my ($path, $contents) = @_;
+
+	$path = path($path);
+	open my $fh, ">", $path
+		or die "$path: $!\n";
+
+	binmode $fh, ':utf8';
+	print $fh $contents;
+	close $fh;
+
+	return 1;
+}
+
 1;
 
 =head1 NAME
@@ -226,6 +257,15 @@ root directory.
 Using graphviz utilities (dot, circo, fdp, neato, etc.), render all diagrams
 in {root}/data/diag (or whatever the B<source> option is passed as).  All
 resultant files will be PNG images, in {site}/diag.
+
+=head2 readf($path)
+
+Read and return the full contents of the file at C<$path>.
+
+=head2 writef($path, $contents)
+
+Write C<$contents> (as a string) to the file at C<$path>.
+
 
 =head1 AUTHOR
 
