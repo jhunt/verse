@@ -15,7 +15,7 @@ release:
 	make verse
 	make docker
 	docker tag huntprod/verse huntprod/verse:$(VERSION)
-	docker push huntprod/verse
+	docker push huntprod/verse:latest
 	docker push huntprod/verse:$(VERSION)
 
 test:
