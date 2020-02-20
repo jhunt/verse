@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Verse::Utils;
+use Date::Parse qw/strptime/;
 use POSIX qw/strftime/;
 use base 'Exporter';
 our @EXPORT = qw/
@@ -147,7 +148,10 @@ my %FUNCS = (
 
 	strftime => sub {
 		my (undef, $ts, $fmt) = @_;
-		return strftime($fmt, localtime($ts || 0));
+		return strftime($fmt, localtime()) unless defined $ts;
+
+		no warnings;
+		return strftime($fmt, ($ts =~ m/^\d+$/) ? localtime($ts) : (strptime($ts)));
 	},
 );
 
