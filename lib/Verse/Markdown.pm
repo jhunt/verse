@@ -25,6 +25,7 @@ sub cksum { md5_hex(encode_utf8(shift)) }
 sub format
 {
 	my ($text) = @_;
+	return '' unless $text;
 	$text =~ s/\r\n/\n/g;
 	$text =~ s/\r/\n/g;
 	$text .= "\n\n";
