@@ -17,7 +17,7 @@ use YAML qw/LoadFile Load/;
 our $VERSION = "(development)";
 our $BUILD   = "";
 
-our $ROOT = $ENV{PWD};
+our $ROOT = $ENV{PWD} || '/';
 our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';
 
 sub parse_config_string
