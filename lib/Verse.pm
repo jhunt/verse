@@ -20,6 +20,8 @@ our $BUILD   = "";
 our $ROOT = $ENV{PWD} || '/';
 our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';
 
+our %ASSETS;
+
 sub parse_config_string
 {
 	my ($yaml) = @_;

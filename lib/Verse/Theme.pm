@@ -103,7 +103,7 @@ sub render
 		$opt{layout} = path("{theme}/layouts/site.tt") unless -f $opt{layout};
 		unshift @$tpls, $opt{layout};
 	}
-	template($tpls, \%vars, $path);
+	template($tpls, \%vars, verse->{paths}, $path);
 }
 
 sub blog    { Verse::Object::Blog }

@@ -2,8 +2,11 @@ package Verse::Template;
 use strict;
 use warnings;
 
+use Verse qw();
 use Verse::Utils;
 use Date::Parse qw/strptime/;
+use Digest::SHA1 qw/sha1_hex/;
+use Encode qw/encode_utf8/;
 use POSIX qw/strftime/;
 use base 'Exporter';
 our @EXPORT = qw/
@@ -12,11 +15,11 @@ our @EXPORT = qw/
 
 sub template
 {
-	my ($templates, $vars, $outfile) = @_;
+	my ($templates, $vars, $paths, $outfile) = @_;
 	$templates = [$templates] if ref($templates) ne 'ARRAY';
 
 	for my $template (reverse @$templates) {
-		$vars->{content} = _evaluate(_read($template), $vars, $template);
+		$vars->{content} = _evaluate(_read($template), $vars, $paths, $template);
 		chomp($vars->{content});
 	}
 	return $vars->{content} if !$outfile;
@@ -66,6 +69,7 @@ use constant {
 	T_FILTER  => 31, # filter
 	T_COMMA   => 32, # "," delimiter
 	T_FUNCALL => 33, # <IDENT>(
+	T_ASSET   => 34, # asset
 };
 
 my @NAMES = (
@@ -346,6 +350,7 @@ sub _lex
 		return [T_AND]     if lc($lexeme) eq 'and';
 		return [T_OR]      if lc($lexeme) eq 'or';
 		return [T_FILTER]  if lc($lexeme) eq 'filter';
+		return [T_ASSET]   if lc($lexeme) eq 'asset';
 		return [T_IDENT, $lexeme];
 
 	} elsif ($c =~ m/[0-9]/) {
@@ -607,6 +612,18 @@ sub _filter
 	return $filter;
 }
 
+sub _asset
+{
+	my $asset = ['ASSET'];
+	if (!_at($_[0], T_STRING)) {
+		_unexpected($_[0], 'a quoted asset name, like "styles/main.css"');
+	}
+	push @$asset, _argn($_[0], 0);
+
+	_next($_[0]); _eat($_[0], T_CLOSE, 'a closing "%]"');
+	return $asset;
+}
+
 sub _apply
 {
 	my $fn = ['APPLY'];
@@ -665,6 +682,10 @@ sub _stmt
 	} elsif (_at($_[0], T_FILTER)) {
 		_next($_[0]);
 		$stmt = _filter($_[0]);
+
+	} elsif (_at($_[0], T_ASSET)) {
+		_next($_[0]);
+		$stmt = _asset($_[0]);
 
 	} else {
 		_unexpected($_[0], "a variable name, or a control construct like if, unless, or for");
@@ -876,6 +897,28 @@ sub _eval
 		return;
 	}
 
+	if ($op eq 'ASSET') {
+		my $divert = $Verse::ASSETS{$args[0]};
+		if (!$divert) {
+			my $root = $vm->{paths}{site};
+			open my $fh, "<", "$root/$args[0]"
+				or die "Unable to open $root/$args[0]: $!\n";
+			my $sha1 = substr(sha1_hex(encode_utf8(do { local $/; <$fh> })), 0, 12);
+			close $fh;
+
+			my $file = "$args[0]-$sha1";
+			if ($args[0] =~ m{^(.*[^/]+)\.(.*?)$}) {
+				$file = "$1-$sha1.$2";
+			}
+
+			print "[rename] $root/$args[0] -> $root/$file\n";
+			rename "$root/$args[0]", "$root/$file";
+			$divert = $Verse::ASSETS{$args[0]} = $file;
+		}
+		$vm->{out} .= $divert;
+		return;
+	}
+
 	if ($op eq 'APPLY') {
 		# FIXME: precludes nesting fun calls; need ['PRINT', ['APPLY' ...]]
 		my $fn = $args[0]; shift @args;
@@ -930,11 +973,13 @@ sub _eval
 
 sub _evaluate
 {
-	my ($ast, $vars, $file) = @_;
+	my ($ast, $vars, $paths, $file) = @_;
 	my $vm = {
 		current => $file || '{unknown}',
 		out => '',
 		env => [$vars || {}],
+		paths => $paths,
+		assets => {},
 	};
 	_eval($vm, $ast);
 	return $vm->{out};
