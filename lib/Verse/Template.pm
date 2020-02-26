@@ -898,24 +898,13 @@ sub _eval
 	}
 
 	if ($op eq 'ASSET') {
-		my $divert = $Verse::ASSETS{$args[0]};
-		if (!$divert) {
-			my $root = $vm->{paths}{site};
-			open my $fh, "<", "$root/$args[0]"
-				or die "Unable to open $root/$args[0]: $!\n";
-			my $sha1 = substr(sha1_hex(encode_utf8(do { local $/; <$fh> })), 0, 12);
-			close $fh;
+		my $root = $vm->{paths}{site};
+		open my $fh, "<", "$root/$args[0]"
+			or die "Unable to open $root/$args[0]: $!\n";
+		my $sha1 = substr(sha1_hex(encode_utf8(do { local $/; <$fh> })), 0, 12);
+		close $fh;
 
-			my $file = "$args[0]-$sha1";
-			if ($args[0] =~ m{^(.*[^/]+)\.(.*?)$}) {
-				$file = "$1-$sha1.$2";
-			}
-
-			print "[rename] $root/$args[0] -> $root/$file\n";
-			rename "$root/$args[0]", "$root/$file";
-			$divert = $Verse::ASSETS{$args[0]} = $file;
-		}
-		$vm->{out} .= $divert;
+		$vm->{out} .= "$args[0]?v$sha1";
 		return;
 	}
 
