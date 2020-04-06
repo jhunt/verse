@@ -1,8 +1,7 @@
 default: test
 
 docker:
-	cp verse docker/verse
-	docker build -t huntprod/verse docker/
+	docker build -t huntprod/verse .
 
 verse:
 	rm -f verse-*
