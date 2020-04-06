@@ -12,7 +12,7 @@ release:
 	@echo "Checking that VERSION was defined in the calling environment"
 	@test -n "$(VERSION)"
 	@echo "OK.  VERSION=$(VERSION)"
-	docker build -t huntprod/verse:latest --build-arg VERSION=$(VERSION)
+	docker build -t huntprod/verse:latest --build-arg VERSION=$(VERSION) .
 	docker tag huntprod/verse:latest huntprod/verse:$(VERSION)
 	docker push huntprod/verse:latest
 	docker push huntprod/verse:$(VERSION)
