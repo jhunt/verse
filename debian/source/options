@@ -1,1 +1,0 @@
-extend-diff-ignore = 't/tmp|cover_db|bin/app.pl'
