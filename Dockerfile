@@ -1,11 +1,14 @@
 FROM perl:5.30 AS build
-RUN cpan Clone
+ARG VERSION
 WORKDIR /build
-COPY . .
+
+RUN cpan Clone
 RUN mkdir /dist \
- && ./pack && cp verse-* /dist/verse \
  && curl -sLo /dist/spruce https://github.com/geofffranks/spruce/releases/download/v1.18.2/spruce-linux-amd64 \
- && curl -sLo /dist/jq     https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
+ && curl -sLo /dist/jq     https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+
+COPY . .
+RUN ./pack $VERSION && cp verse-* /dist/verse \
  && chmod 0755 /dist/*
 
 FROM ubuntu:18.04
@@ -21,5 +24,7 @@ COPY --from=build /dist/* /usr/bin/
 EXPOSE  4000
 VOLUME  /web
 WORKDIR /web
-ENV HOME=/tmp
+ENV HOME=/home
+
+RUN verse inflate
 ENTRYPOINT ["verse"]
