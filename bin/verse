@@ -14,6 +14,9 @@ GetOptions(\%OPTIONS, qw/
 $Verse::VERSION = "(development)";
 $Verse::BUILD = "";
 
+$SIG{TERM} = sub { die "caught sigterm; bailing...\n"; };
+$SIG{INT}  = sub { die "caught sigint; bailing...\n"; };
+
 $ENV{VERSE_LOCAL} = 1    if $OPTIONS{local};
 unshift @ARGV, "help"    if $OPTIONS{help};
 unshift @ARGV, "version" if $OPTIONS{version};
