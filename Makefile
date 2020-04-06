@@ -2,6 +2,7 @@ default: test
 
 docker:
 	docker build -t huntprod/verse .
+	docker run huntprod/verse help
 
 verse:
 	rm -f verse-*
@@ -11,9 +12,8 @@ release:
 	@echo "Checking that VERSION was defined in the calling environment"
 	@test -n "$(VERSION)"
 	@echo "OK.  VERSION=$(VERSION)"
-	make verse
-	make docker
-	docker tag huntprod/verse huntprod/verse:$(VERSION)
+	docker build -t huntprod/verse:latest --build-arg VERSION=$(VERSION)
+	docker tag huntprod/verse:latest huntprod/verse:$(VERSION)
 	docker push huntprod/verse:latest
 	docker push huntprod/verse:$(VERSION)
 

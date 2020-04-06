@@ -31,7 +31,23 @@ sub file
 	close $fh;
 }
 
-my $CMD = shift @ARGV || 'help';
+my $CMD = (shift @ARGV) || 'help';
+if ($CMD eq 'inflate') {
+	exit 0;
+}
+if ($CMD eq 'help') {
+	print "Verse v$Verse::VERSION$Verse::BUILD\n";
+	print "USAGE: verse COMMAND\n\n";
+	print "Commands:\n\n";
+	print "  help         Print this help screen and exit.\n\n";
+	print "  new          Set up the current working directory as\n";
+	print "               a new Verse website repository.\n\n";
+	print "  build        Build the current website repository.\n\n";
+	print "  run [port]   Run a demo web server for browsing the.\n\n";
+	print "               pre-rendered Verse website.\n\n";
+	print "               (Don't forget to call `verse build' first!)\n\n";
+	exit 0;
+}
 if ($CMD eq 'version') {
 	print "Verse v$Verse::VERSION$Verse::BUILD\n";
 	exit 0;
