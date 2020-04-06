@@ -18,15 +18,10 @@ release:
 	docker push huntprod/verse:$(VERSION)
 
 test:
-	prove -l t/*.t
-check: test
-
-Build: Build.PL
-	perl ./Build.PL
-manifest: Build
-	./Build manifest
+	docker build -t huntprod/verse-test -f t/Dockerfile .
+	docker run --rm -v $(PWD):/app -u $(shell id -u) huntprod/verse-test
 
 clean:
 	rm -f verse-* verse
 
-.PHONY: default docker release test check manifest
+.PHONY: default docker release test
