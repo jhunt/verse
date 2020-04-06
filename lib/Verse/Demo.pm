@@ -3,6 +3,8 @@ package Verse::Demo;
 use strict;
 use warnings;
 use IO::Socket;
+use Cwd qw/getcwd/;
+
 use base 'Exporter';
 our @EXPORT = qw/ demo /;
 
@@ -50,7 +52,7 @@ sub demo
 	$opts{backlog} = 64      unless $opts{backlog};
 	$opts{htdocs} = 'htdocs' unless $opts{htdocs};
 
-	$opts{htdocs} = "$ENV{PWD}/$opts{htdocs}";
+	$opts{htdocs} = getcwd()."/$opts{htdocs}";
 
 	$opts{listen} = "*:$opts{listen}"
 		if $opts{listen} =~ m/^\d+$/;

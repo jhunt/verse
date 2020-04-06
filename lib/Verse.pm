@@ -3,6 +3,7 @@ package Verse;
 use strict;
 use warnings;
 use Clone qw/clone/;
+use Cwd qw/getcwd/;
 use Carp;
 
 use base 'Exporter';
@@ -17,7 +18,7 @@ use YAML qw/LoadFile Load/;
 our $VERSION = "(development)";
 our $BUILD   = "";
 
-our $ROOT = $ENV{PWD} || '/';
+our $ROOT = getcwd() || '/';
 our $VDIR = -f "$ROOT/site.yml" ? '.' : '.verse';
 
 sub parse_config_string
