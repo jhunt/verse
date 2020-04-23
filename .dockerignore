@@ -1,3 +1,10 @@
-/LICENSE
-/Makefile
-/Dockerfile
+**
+!/Build.PL
+!/MANIFEST
+!/MANIFEST.SKIP
+!/bin
+!/default
+!/ext
+!/lib
+!/pack
+!/pack-defaults
