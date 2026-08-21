@@ -59,6 +59,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 pack
 README.md
+UPGRADING.md
 t/00-load.t
 t/05-verse.t
 t/10-markdown.t
