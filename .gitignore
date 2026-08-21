@@ -21,3 +21,7 @@ verse
 /fatlib
 /docker/lib
 /docker/bin
+
+# Build cache for incremental builds
+build-cache.yml
+.verse/build-cache.yml

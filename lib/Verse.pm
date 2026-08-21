@@ -10,9 +10,11 @@ use base 'Exporter';
 our @EXPORT = qw/
 	rhyme
 	verse
+	build_cache
 /;
 
 use Verse::Utils;
+use Verse::BuildCache;
 use YAML qw/LoadFile Load/;
 
 our $VERSION = "(development)";
@@ -100,6 +102,19 @@ THEME:  $v->{site}{theme}
 EOF
 }
 
+my $BUILD_CACHE;
+
+sub build_cache
+{
+	return $BUILD_CACHE if $BUILD_CACHE;
+
+	my $v = verse;
+	my $cache_file = $v->{paths}{root}.'/.verse/build-cache.yml';
+
+	$BUILD_CACHE = Verse::BuildCache->load($cache_file);
+	return $BUILD_CACHE;
+}
+
 1;
 
 =head1 NAME
@@ -124,6 +139,12 @@ the same parsing / normalization overhead.
 
 Print the Verse boot screen, which includes diagnostic messages
 about the paths that will be used during the render process.
+
+=head2 build_cache
+
+Return the build cache instance, used for incremental builds. The
+cache is loaded from .verse/build-cache.yml and memoized for the
+duration of the build.
 
 =head2 parse_config_string($yaml)
 

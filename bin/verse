@@ -60,6 +60,15 @@ if ($CMD eq 'build') {
 		unless -x $theme;
 
 	eval { require $theme } or die "$@\n";
+
+	# Save build cache
+	if (Verse::can('build_cache')) {
+		my $cache = build_cache();
+		my $cache_file = verse->{paths}{root}.'/'.verse->{VDIR}.'/build-cache.yml';
+		$cache->save($cache_file);
+		print STDERR "[cache] Saved build cache to $cache_file\n";
+	}
+
 	exit 0;
 }
 

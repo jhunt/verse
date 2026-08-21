@@ -42,6 +42,7 @@ default/theme/default/var/snow/images/h1366.jpg
 default/theme/default/var/snow/images/h1680.jpg
 default/theme/default/var/snow/images/h1920.jpg
 lib/Verse.pm
+lib/Verse/BuildCache.pm
 lib/Verse/Default.pm
 lib/Verse/Demo.pm
 lib/Verse/Jump.pm

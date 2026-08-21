@@ -64,7 +64,23 @@ sub copy
 
 	$from = path($from);
 	$to   = path($to);
+
+	# For now, just copy all files (cache-aware copying would require
+	# expanding shell globs, which is complex). We record the destination
+	# so future builds can detect changes.
 	run("cp -a $from $to");
+
+	# Record copied files in build cache
+	# This is a simplified approach - we record the destination directory
+	# which allows detecting changes for next build, even if we don't
+	# skip files in this build.
+	if (Verse::can('build_cache')) {
+		my $cache = Verse::build_cache();
+		# Record the from path so changes are tracked
+		if (-f $from) {
+			$cache->record_file($from);
+		}
+	}
 }
 
 sub dir
@@ -185,7 +201,51 @@ sub render
 		$opt{layout} = path("{theme}/layouts/site.tt") unless -f $opt{layout};
 		unshift @$tpls, $opt{layout};
 	}
-	template($tpls, \%vars, verse->{paths}, $path);
+
+	# Check build cache to see if we need to rebuild
+	my $needs_rebuild = 1;
+	if (Verse::can('build_cache') && $path) {
+		my $cache = Verse::build_cache();
+
+		# Collect all source files
+		my @sources = @$tpls;
+
+		# Add content file if available
+		for my $item (@$obj) {
+			if (ref($item) && $item->can('file') && $item->file) {
+				push @sources, $item->file;
+			}
+		}
+
+		# Add site.yml as a source (changes affect all pages)
+		push @sources, verse->{paths}{root}.'/'.verse->{VDIR}.'/site.yml';
+
+		# Check if rebuild needed
+		$needs_rebuild = $cache->needs_rebuild(\@sources, $path);
+
+		if (!$needs_rebuild) {
+			print STDERR "[render] SKIP (cached) $opt{using} :: $path\n";
+		}
+	}
+
+	if ($needs_rebuild) {
+		template($tpls, \%vars, verse->{paths}, $path);
+
+		# Record output and sources in cache
+		if (Verse::can('build_cache') && $path) {
+			my $cache = Verse::build_cache();
+
+			my @sources = @$tpls;
+			for my $item (@$obj) {
+				if (ref($item) && $item->can('file') && $item->file) {
+					push @sources, $item->file;
+				}
+			}
+			push @sources, verse->{paths}{root}.'/'.verse->{VDIR}.'/site.yml';
+
+			$cache->record_output($path, @sources);
+		}
+	}
 
 	# Register URL in sitemap for HTML files
 	if ($opt{at} && $opt{at} =~ /\.html$/ && verse->{site}{canon}) {
