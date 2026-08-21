@@ -79,6 +79,7 @@ use constant {
 	T_FUNCALL => 33, # <IDENT>(
 	T_ASSET   => 34, # asset
 	T_PIPE    => 35, # | (for vmethods/filters)
+	T_ELSIF   => 36, # elsif
 };
 
 my @NAMES;
@@ -118,6 +119,7 @@ $NAMES[T_COMMA]   = '"," argument delimiter';
 $NAMES[T_FUNCALL] = 'function call';
 $NAMES[T_ASSET]   = '"asset" keyword';
 $NAMES[T_PIPE]    = '"|" pipe operator';
+$NAMES[T_ELSIF]   = '"elsif" keyword';
 $NAMES[T_ERR]     = 'error token';
 $NAMES[T_EOT]     = 'end of template';
 
@@ -403,6 +405,7 @@ sub _lex
 		return [T_IF]      if lc($lexeme) eq 'if';
 		return [T_UNLESS]  if lc($lexeme) eq 'unless';
 		return [T_ELSE]    if lc($lexeme) eq 'else';
+		return [T_ELSIF]   if lc($lexeme) eq 'elsif';
 		return [T_NOT]     if lc($lexeme) eq 'not';
 		return [T_AND]     if lc($lexeme) eq 'and';
 		return [T_OR]      if lc($lexeme) eq 'or';
@@ -640,6 +643,12 @@ sub _if
 		return $if;
 	}
 
+	if (_at($_[0], T_ELSIF)) {
+		_next($_[0]);
+		$if->[3] = _if($_[0], 1);
+		return $if;
+	}
+
 	if (_at($_[0], T_ELSE)) {
 		_next($_[0]);
 		if (_at($_[0], T_CLOSE)) {
@@ -665,7 +674,7 @@ sub _if
 		}
 	}
 
-	_unexpected($_[0], 'an "[% end %]" directive, or the "else" keyword');
+	_unexpected($_[0], 'an "[% end %]" directive, the "elsif" keyword, or the "else" keyword');
 }
 
 sub _for
@@ -813,9 +822,10 @@ sub _seq
 
 		if (_at($_[0], T_OPEN)) {
 			_next($_[0]);
-			# if we hit an [% end %] block, return early
+			# if we hit an [% end %], [% else %], or [% elsif %] block, return early
 			return $seq if _at($_[0], T_END)
-			            or _at($_[0], T_ELSE);
+			            or _at($_[0], T_ELSE)
+			            or _at($_[0], T_ELSIF);
 
 			# otherwise, treat this as a statement opener
 			push @$seq, _stmt($_[0]);
@@ -1161,6 +1171,22 @@ It also supports conditionals:
     [% if is.on %]
     it is so on
     [% end %]
+
+Conditionals can have C<elsif> clauses for multiple branches:
+
+    [% if x == 1 %]
+    one
+    [% elsif x == 2 %]
+    two
+    [% elsif x == 3 %]
+    three
+    [% else %]
+    other
+    [% end %]
+
+The C<elsif> keyword allows an arbitrary number of conditional branches
+to be chained together. Each condition is evaluated in order, and the
+first matching branch is executed.
 
 All the usual comparison operators are available:
 

@@ -623,4 +623,25 @@ $src = "[% text | uriencode %]";
 is(_do($src, { text => "hello world" }),
 	"hello+world", "vmethod pipe applies uriencode filter");
 
+########################################################
+$src = "[% if x == 1 %]one[% elsif x == 2 %]two[% elsif x == 3 %]three[% else %]other[% end %]";
+is(_do($src, { x => 1 }),
+	"one", "elsif handles first condition");
+is(_do($src, { x => 2 }),
+	"two", "elsif handles second condition");
+is(_do($src, { x => 3 }),
+	"three", "elsif handles third condition");
+is(_do($src, { x => 4 }),
+	"other", "elsif falls through to else");
+
+$src = "[% if x == 1 %]A[% elsif x == 2 %]B[% elsif x == 3 %]C[% elsif x == 4 %]D[% elsif x == 5 %]E[% end %]";
+is(_do($src, { x => 4 }),
+	"D", "elsif handles multiple elsif clauses");
+is(_do($src, { x => 6 }),
+	"", "elsif with no else returns empty string");
+
+$src = "[% if x == 1 %]one[% elsif x == 2 %]two[% end %]";
+is(_do($src, { x => 2 }),
+	"two", "elsif works without else clause");
+
 done_testing;
