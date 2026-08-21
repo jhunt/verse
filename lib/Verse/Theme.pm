@@ -74,7 +74,7 @@ sub copy
 	# This is a simplified approach - we record the destination directory
 	# which allows detecting changes for next build, even if we don't
 	# skip files in this build.
-	if (Verse::can('build_cache')) {
+	if (defined &Verse::build_cache) {
 		my $cache = Verse::build_cache();
 		# Record the from path so changes are tracked
 		if (-f $from) {
@@ -204,7 +204,7 @@ sub render
 
 	# Check build cache to see if we need to rebuild
 	my $needs_rebuild = 1;
-	if (Verse::can('build_cache') && $path) {
+	if (defined &Verse::build_cache && $path) {
 		my $cache = Verse::build_cache();
 
 		# Collect all source files
@@ -232,7 +232,7 @@ sub render
 		template($tpls, \%vars, verse->{paths}, $path);
 
 		# Record output and sources in cache
-		if (Verse::can('build_cache') && $path) {
+		if (defined &Verse::build_cache && $path) {
 			my $cache = Verse::build_cache();
 
 			my @sources = @$tpls;
