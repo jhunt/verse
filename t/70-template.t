@@ -644,4 +644,39 @@ $src = "[% if x == 1 %]one[% elsif x == 2 %]two[% end %]";
 is(_do($src, { x => 2 }),
 	"two", "elsif works without else clause");
 
+########################################################
+# Test method calls
+package TestObj;
+sub new { bless {name => $_[1]}, $_[0] }
+sub greet { my ($self, $greeting) = @_; return "$greeting, " . $self->{name} }
+sub double { my ($self, $x) = @_; return $x * 2 }
+sub concat { my ($self, $a, $b) = @_; return "$a$b" }
+
+package main;
+
+my $obj = TestObj->new("World");
+$src = "[% obj.greet('Hello') %]";
+is(_do($src, { obj => $obj }),
+	"Hello, World", "method call with single argument");
+
+$src = "[% obj.double(21) %]";
+is(_do($src, { obj => $obj }),
+	"42", "method call with numeric argument");
+
+$src = "[% obj.concat('foo', 'bar') %]";
+is(_do($src, { obj => $obj }),
+	"foobar", "method call with multiple arguments");
+
+# Test method call with filter
+package Article;
+sub new { bless {}, $_[0] }
+sub get_text { return "  spaces   everywhere  " }
+
+package main;
+
+my $article = Article->new();
+$src = "[% article.get_text() | collapse %]";
+is(_do($src, { article => $article }),
+	"spaces everywhere", "method call with pipe filter");
+
 done_testing;

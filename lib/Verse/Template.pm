@@ -729,19 +729,53 @@ sub _asset
 
 sub _apply
 {
+	my $f = _argn($_[0], 0);
+
+	# Check if this is a method call (contains a dot)
+	if ($f =~ /\./) {
+		my $methcall = ['METHCALL'];
+		# Split into object path and method name
+		my @parts = split(/\./, $f);
+		my $method = pop @parts;
+		my $objpath = join('.', @parts);
+
+		push @$methcall, $objpath, $method;
+
+		_next($_[0]);
+		# Check for empty argument list
+		if (_at($_[0], T_CPAR)) {
+			_next($_[0]);
+		} else {
+			for (;;) {
+				push @$methcall, _expr($_[0]);
+				if (_at($_[0], T_CPAR))  { _next($_[0]); last; }
+				if (_at($_[0], T_COMMA)) { _next($_[0]); next; }
+				_unexpected($_[0], 'a comma (argument delimiter) or a closing parenthesis');
+			}
+		}
+		# Don't consume T_CLOSE yet - let _stmt handle it (for pipe support)
+		return $methcall;
+	}
+
+	# Regular function call
 	my $fn = ['APPLY'];
-	my $f = lc(_argn($_[0], 0));
-	_fail($_[0], "undefined function '$f'") unless $FUNCS{$f};
-	push @$fn, $f;
+	my $fname = lc($f);
+	_fail($_[0], "undefined function '$f'") unless $FUNCS{$fname};
+	push @$fn, $fname;
 
 	_next($_[0]);
-	for (;;) {
-		push @$fn, _expr($_[0]);
-		if (_at($_[0], T_CPAR))  { _next($_[0]); last; }
-		if (_at($_[0], T_COMMA)) { _next($_[0]); next; }
-		_unexpected($_[0], 'a comma (argument delimiter) or a closing parenthesis');
+	# Check for empty argument list
+	if (_at($_[0], T_CPAR)) {
+		_next($_[0]);
+	} else {
+		for (;;) {
+			push @$fn, _expr($_[0]);
+			if (_at($_[0], T_CPAR))  { _next($_[0]); last; }
+			if (_at($_[0], T_COMMA)) { _next($_[0]); next; }
+			_unexpected($_[0], 'a comma (argument delimiter) or a closing parenthesis');
+		}
 	}
-	_eat($_[0], T_CLOSE, 'a closing "%]"'); # FIXME: prohibits nesting functions
+	# Don't consume T_CLOSE yet - let _stmt handle it (for pipe support)
 	return $fn;
 }
 
@@ -782,6 +816,25 @@ sub _stmt
 
 	} elsif (_at($_[0], T_FUNCALL)) {
 		$stmt = _apply($_[0]);
+
+		# Check for pipe after method call
+		if (_at($_[0], T_PIPE)) {
+			_next($_[0]);
+			if (!_at($_[0], T_IDENT)) {
+				_unexpected($_[0], 'a filter name');
+			}
+			my $filter = $_[0]{token}[1];
+			_next($_[0]);
+
+			# Wrap the method call in a VMETHOD_RESULT operation
+			$stmt = ['VMETHOD_RESULT', $stmt, $filter];
+		}
+
+		# Consume the closing %]
+		if (!_at($_[0], T_CLOSE)) {
+			_unexpected($_[0], 'a closing "%]"');
+		}
+		_next($_[0]);
 
 	} elsif (_at($_[0], T_IF)) {
 		_next($_[0]);
@@ -1025,6 +1078,21 @@ sub _eval
 		return;
 	}
 
+	if ($op eq 'VMETHOD_RESULT') {
+		# Evaluate the expression (method call or function) and capture output
+		my $out = $vm->{out};
+		$vm->{out} = '';
+		_eval($vm, $args[0]);
+		my $result = $vm->{out};
+		$vm->{out} = $out;
+
+		# Apply filter to the result
+		_fail($vm, "undefined filter '$args[1]'") unless $FILTERS{$args[1]};
+		$result = $FILTERS{$args[1]}->($vm, $result);
+		$vm->{out} .= $result;
+		return;
+	}
+
 	if ($op eq 'ASSET') {
 		my $root = $vm->{paths}{site};
 		open my $fh, "<", "$root/$args[0]"
@@ -1040,6 +1108,27 @@ sub _eval
 		# FIXME: precludes nesting fun calls; need ['PRINT', ['APPLY' ...]]
 		my $fn = $args[0]; shift @args;
 		$vm->{out} .= $FUNCS{$fn}->($vm, map { _ev1($vm, $_) } @args);
+		return;
+	}
+
+	if ($op eq 'METHCALL') {
+		my $objpath = $args[0];
+		my $method = $args[1];
+		my @margs = @args[2..$#args];
+
+		# Get the object
+		my ($obj, $ok) = _get($vm, $objpath);
+		if (!$ok) {
+			_fail($vm, "undefined object '$objpath' for method call");
+		}
+
+		# Call the method if it exists
+		if (ref($obj) && $obj->can($method)) {
+			my $result = $obj->$method(map { _ev1($vm, $_) } @margs);
+			$vm->{out} .= $result if defined $result;
+		} else {
+			_fail($vm, "object '$objpath' has no method '$method'");
+		}
 		return;
 	}
 
