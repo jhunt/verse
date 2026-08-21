@@ -4,10 +4,18 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Deep;
-use File::Slurp qw/read_file/;
 use Cwd qw/chdir cwd/;
 use lib 'lib';
 use lib 'ext';
+
+sub read_file {
+	my ($file, %args) = @_;
+	open my $fh, '<', $file or die "Can't open $file: $!";
+	binmode $fh, $args{binmode} if $args{binmode};
+	my $content = do { local $/; <$fh> };
+	close $fh;
+	return $content;
+}
 
 BEGIN { use_ok 'Verse'
 		or BAIL_OUT "Could not `use Verse`" }
