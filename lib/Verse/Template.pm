@@ -78,6 +78,7 @@ use constant {
 	T_COMMA   => 32, # "," delimiter
 	T_FUNCALL => 33, # <IDENT>(
 	T_ASSET   => 34, # asset
+	T_PIPE    => 35, # | (for vmethods/filters)
 };
 
 my @NAMES = (
@@ -115,6 +116,8 @@ my @NAMES = (
 	'"filter" keyword',
 	'"," argument delimiter',
 	'function call',
+	'"asset" keyword',
+	'"|" pipe operator',
 );
 
 my %FILTERS = (
@@ -349,12 +352,12 @@ sub _lex
 
 	} elsif ($c eq '|') {
 		$i++;
-		return [T_ERR, 'ran out of code to parse'] if $i >= $_[0]{len};
-
-		$c = substr($_[0]{src}, $i, 1);
-		$i++; $_[0]{idx} = $i;
-		return [T_OR] if $c eq '|';
-		return [T_ERR, 'unrecognized OR operator'];
+		if ($i < $_[0]{len} && substr($_[0]{src}, $i, 1) eq '|') {
+			$_[0]{idx} = $i + 1;
+			return [T_OR];
+		}
+		$_[0]{idx} = $i;
+		return [T_PIPE];
 
 	} elsif ($c eq '"' || $c eq "'" || ($c eq 'm' && substr($_[0]{src}, $i+1, 1) eq '/')) {
 		if ($c eq 'm') {
@@ -725,7 +728,20 @@ sub _stmt
 	if (_at($_[0], T_IDENT)) {
 		my $var = _argn($_[0], 0);
 		_next($_[0]);
-		if (_at($_[0], T_CLOSE)) {
+		if (_at($_[0], T_PIPE)) {
+			_next($_[0]);
+			if (!_at($_[0], T_IDENT)) {
+				_unexpected($_[0], 'a filter name');
+			}
+			my $filter = $_[0]{token}[1];
+			_next($_[0]);
+			$stmt = ['VMETHOD', $var, $filter];
+			if (!_at($_[0], T_CLOSE)) {
+				_unexpected($_[0], 'a closing "%]"');
+			}
+			_next($_[0]);
+
+		} elsif (_at($_[0], T_CLOSE)) {
 			$stmt = ['DEREF', $var];
 			_next($_[0]);
 
@@ -974,6 +990,16 @@ sub _eval
 		return;
 	}
 
+	if ($op eq 'VMETHOD') {
+		my ($v, $ok) = _get($_[0], $args[0]);
+		if ($ok) {
+			_fail($vm, "undefined filter '$args[1]'") unless $FILTERS{$args[1]};
+			$v = $FILTERS{$args[1]}->($vm, $v);
+			$vm->{out} .= $v;
+		}
+		return;
+	}
+
 	if ($op eq 'ASSET') {
 		my $root = $vm->{paths}{site};
 		open my $fh, "<", "$root/$args[0]"
@@ -1077,6 +1103,43 @@ Comments can be embedded using C<[%# ... %]> syntax:
 Comments support whitespace trimming with C<-> characters:
 
     Line 1[%#- This comment trims surrounding whitespace -%]Line 2
+
+=head2 Filters / VMethods
+
+Variables can be filtered through transformation functions using the pipe
+operator C<|>, similar to Template Toolkit's VMethods:
+
+    [% description | collapse %]
+    [% url | uriencode %]
+    [% content | markdown %]
+
+This applies the named filter to the variable's value before outputting it.
+Filters work with simple variables and nested properties:
+
+    [% meta_obj.meta_description | collapse %]
+
+Available filters include:
+
+=over
+
+=item C<collapse>
+
+Trims leading and trailing whitespace, and collapses multiple whitespace
+characters (including newlines) into single spaces.
+
+=item C<uriencode> / C<uridecode>
+
+Encode or decode URI components.
+
+=item C<markdown>
+
+Convert markdown text to HTML.
+
+=item C<cdata>
+
+Wrap content in a CDATA section.
+
+=back
 
 It also supports conditionals:
 

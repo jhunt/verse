@@ -599,4 +599,21 @@ $src = "[%# This comment explains the code below %]OK";
 is(_do($src), "OK",
 	"comments work with descriptive text");
 
+########################################################
+$src = "[% text | collapse %]";
+is(_do($src, { text => "  Hello   World  " }),
+	"Hello World", "vmethod pipe applies collapse filter");
+
+$src = "[% obj.description | collapse %]";
+is(_do($src, { obj => { description => "  Multi   Space   Text  \n  " } }),
+	"Multi Space Text", "vmethod pipe works with nested properties");
+
+$src = "[% simple_var | collapse %]";
+is(_do($src, { simple_var => "NoSpaces" }),
+	"NoSpaces", "vmethod pipe handles already-clean text");
+
+$src = "[% text | uriencode %]";
+is(_do($src, { text => "hello world" }),
+	"hello+world", "vmethod pipe applies uriencode filter");
+
 done_testing;
