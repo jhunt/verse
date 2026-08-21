@@ -28,6 +28,18 @@ site:
   #  facebook: https://www.facebook.com/YOURID
   #  twitter:  YOURID # minus the '@'
 
+  # Meta tag defaults (used for Open Graph, Twitter Cards, etc.)
+  # These provide fallbacks when content doesn't specify meta attributes
+  #meta:
+  #  default_description: "My personal blog about interesting topics"
+  #  default_image: /images/og-default.jpg
+  #  twitter:
+  #    card: summary_large_image
+  #    site: YOURID # minus the '@'
+  #  facebook:
+  #    app_id: 123456789
+  #    author: https://www.facebook.com/YOURID
+
 
 # P.S. If you want to get started adding content to your site,
 # you'll be interested in the files under data/:

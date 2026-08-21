@@ -10,6 +10,7 @@ use Verse::Utils;
 use File::Find qw/find/;
 use YAML qw/Load Dump/;
 use Time::ParseDate qw/parsedate/;
+use POSIX qw/strftime/;
 
 sub type { 'object' }
 sub path { 'misc' }
@@ -81,6 +82,105 @@ sub uuid
 	return $self->{__permalink};
 }
 
+########################################
+# Meta Tag Helper Methods
+
+sub meta_title
+{
+	my ($self) = @_;
+
+	# Try content title first
+	my $title = $self->attrs->{title};
+	return "$title - ".verse->{site}{title} if $title;
+
+	# Fall back to site title
+	return verse->{site}{title};
+}
+
+sub meta_description
+{
+	my ($self) = @_;
+
+	# Check explicit meta description
+	return $self->attrs->{meta}{description}
+		if $self->attrs->{meta} && $self->attrs->{meta}{description};
+
+	# Try abstract/summary
+	return $self->attrs->{abstract} if $self->attrs->{abstract};
+	return $self->attrs->{summary} if $self->attrs->{summary};
+
+	# For blog posts, try teaser
+	return $self->attrs->{teaser} if $self->attrs->{teaser};
+
+	# Fall back to site default
+	return verse->{site}{meta}{default_description}
+		if verse->{site}{meta} && verse->{site}{meta}{default_description};
+
+	return undef;
+}
+
+sub meta_image
+{
+	my ($self) = @_;
+
+	# Check explicit meta image
+	return $self->attrs->{meta}{image}
+		if $self->attrs->{meta} && $self->attrs->{meta}{image};
+
+	# Try thumb/cover/featured_image
+	return $self->attrs->{thumb} if $self->attrs->{thumb};
+	return $self->attrs->{cover} if $self->attrs->{cover};
+	return $self->attrs->{featured_image} if $self->attrs->{featured_image};
+
+	# Fall back to site default
+	return verse->{site}{meta}{default_image}
+		if verse->{site}{meta} && verse->{site}{meta}{default_image};
+
+	return undef;
+}
+
+sub meta_url
+{
+	my ($self, $path) = @_;
+
+	my $canon = verse->{site}{canon} || '';
+	$canon =~ s{/$}{};  # Remove trailing slash
+
+	return "$canon$path";
+}
+
+sub meta_type
+{
+	my ($self) = @_;
+
+	# Check explicit type
+	return $self->attrs->{meta}{type}
+		if $self->attrs->{meta} && $self->attrs->{meta}{type};
+
+	# Default based on content type
+	return 'article' if $self->type eq 'article';
+	return 'website';
+}
+
+sub meta_author
+{
+	my ($self) = @_;
+
+	# Check content author
+	return $self->attrs->{author} if $self->attrs->{author};
+
+	# Fall back to site author
+	return verse->{site}{author};
+}
+
+sub meta_published_time
+{
+	my ($self) = @_;
+
+	return undef unless $self->dated;
+	return strftime('%Y-%m-%dT%H:%M:%S+00:00', gmtime($self->dated));
+}
+
 1;
 
 =head1 NAME
@@ -142,6 +242,40 @@ Returns a globally unique identifier for this object, used in
 URIs.  By default, a unique number will be returned.  This method
 can (and should) be overridden by sub-classes to provide more
 appropriate, type-specific behavior.
+
+=head2 meta_title()
+
+Returns a title suitable for meta tags. Uses content title with
+site title appended, or just site title if no content title.
+
+=head2 meta_description()
+
+Returns a description suitable for meta tags. Tries in order:
+explicit meta.description, abstract, summary, teaser, site default.
+
+=head2 meta_image()
+
+Returns an image URL suitable for meta tags. Tries in order:
+explicit meta.image, thumb, cover, featured_image, site default.
+
+=head2 meta_url($path)
+
+Returns a canonical URL for the given path, using the site's
+canonical domain.
+
+=head2 meta_type()
+
+Returns an Open Graph type string. Returns 'article' for blog
+posts, 'website' otherwise, unless explicitly overridden.
+
+=head2 meta_author()
+
+Returns the author name, from content or site default.
+
+=head2 meta_published_time()
+
+Returns ISO 8601 formatted publication time for articles with
+a 'dated' attribute.
 
 =head1 AUTHOR
 

@@ -5,36 +5,62 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,target-densitydpi=device-dpi" />
 <meta name="generator" content="verse" />
 
-[% if dometa -%]
-  <meta name="twitter:card"       content="summary">
-[% if site.id.twitter -%]
-  <meta name="twitter:site"       content="@[% site.id.twitter %]">
-[% end %]
+[% # Auto-detect if we have content object for meta tags -%]
+[% has_content = page || article || gallery -%]
+[% meta_obj = page || article || gallery -%]
 
-<meta property="og:type"        content="article">
-<meta property="og:title"       content="[% article.attrs.title %]">
-<meta property="og:site_name"   content="[% site.title %]">
-<meta property="og:url"         content="[% site.canon %]/writings/[% article.attrs.permalink %].html">
+[% if has_content -%]
+  [% # Twitter Card -%]
+  <meta name="twitter:card" content="[% if meta_obj.attrs.meta.twitter_card %][% meta_obj.attrs.meta.twitter_card %][% elsif site.meta.twitter.card %][% site.meta.twitter.card %][% else %]summary[% end %]">
+  [% if site.meta.twitter.site -%]
+  <meta name="twitter:site" content="@[% site.meta.twitter.site %]">
+  [% elsif site.id.twitter -%]
+  <meta name="twitter:site" content="@[% site.id.twitter %]">
+  [% end -%]
 
-[% if article.attrs.thumb -%]
-  <meta property="og:image"       content="[% site.canon %]/content/wrt/stack.jpg">
-[% end -%]
-<meta property="og:description" content="[% filter collapse %]
-  [% if article.attrs.abstract %]
-    [% article.attrs.abstract %]
-  [% else %]
-    I'm sure it's enthralling and interesting
-  [% end %]
-[% end %]">
-[% if site.id.facebook -%]
+  [% # Open Graph -%]
+  <meta property="og:type" content="[% meta_obj.meta_type %]">
+  <meta property="og:title" content="[% meta_obj.attrs.title %]">
+  <meta property="og:site_name" content="[% site.title %]">
+  [% if page -%]
+  <meta property="og:url" content="[% meta_obj.meta_url(meta_obj.uuid) %]">
+  [% else -%]
+  <meta property="og:url" content="[% meta_obj.meta_url('/writings/' _ meta_obj.uuid _ '.html') %]">
+  [% end -%]
+
+  [% if meta_obj.meta_description -%]
+  <meta property="og:description" content="[% meta_obj.meta_description | collapse %]">
+  [% end -%]
+
+  [% if meta_obj.meta_image -%]
+  <meta property="og:image" content="[% site.canon %][% meta_obj.meta_image %]">
+  [% end -%]
+
+  [% if meta_obj.meta_published_time -%]
+  <meta property="article:published_time" content="[% meta_obj.meta_published_time %]">
+  [% end -%]
+
+  [% if site.meta.facebook.author -%]
+  <meta property="article:author" content="[% site.meta.facebook.author %]">
+  [% elsif site.id.facebook -%]
   <meta property="article:author" content="[% site.id.facebook %]">
-[% end -%]
+  [% end -%]
 
-<title>[% article.attrs.title %] - [% site.title %]</title>
+  <title>[% meta_obj.meta_title %]</title>
 
 [% else -%]
-<title>[% site.title %]</title>
+  [% # Homepage / no specific content -%]
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="[% site.title %]">
+  [% if site.meta.default_description -%]
+  <meta property="og:description" content="[% site.meta.default_description %]">
+  [% end -%]
+  <meta property="og:url" content="[% site.canon %]">
+  [% if site.meta.default_image -%]
+  <meta property="og:image" content="[% site.canon %][% site.meta.default_image %]">
+  [% end -%]
 
+  <title>[% site.title %][% if site.subtitle %] - [% site.subtitle %][% end %]</title>
 [% end %]
 <link rel="stylesheet" href="/[% asset 'style.css' %]">
 <link rel="alternate home" type="application/rss+xml" title="[% site.title %] - RSS feed" href="[% site.url %]/feed.xml">
