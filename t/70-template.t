@@ -570,4 +570,33 @@ is(template(['t/tpl/outer.tt', 't/tpl/page.tt'],
   <h1>some title</h1>
 </html>), "template() should handle nested templates");
 
+########################################################
+$src = "Hello [%# this is a comment %] World";
+is(_do($src), "Hello  World",
+	"comments are stripped from output");
+
+$src = "[%# comment at start %]Text";
+is(_do($src), "Text",
+	"comments at template start are stripped");
+
+$src = "Text[%# comment at end %]";
+is(_do($src), "Text",
+	"comments at template end are stripped");
+
+$src = "Line 1\n[%# comment on own line %]\nLine 2";
+is(_do($src), "Line 1\n\nLine 2",
+	"comments on their own line are stripped");
+
+$src = "[% name = 'Bob' %][%# set variable %]Hello [% name %]";
+is(_do($src), "Hello Bob",
+	"comments can be mixed with code");
+
+$src = "Hello[%#- trim left -%]World";
+is(_do($src), "HelloWorld",
+	"comments support whitespace trimming");
+
+$src = "[%# This comment explains the code below %]OK";
+is(_do($src), "OK",
+	"comments work with descriptive text");
+
 done_testing;
