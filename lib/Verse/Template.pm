@@ -801,13 +801,24 @@ sub _stmt
 		my $var = _argn($_[0], 0);
 		_next($_[0]);
 		if (_at($_[0], T_PIPE)) {
-			_next($_[0]);
-			if (!_at($_[0], T_IDENT)) {
-				_unexpected($_[0], 'a filter name');
+			# Parse filter chain
+			my @filters;
+			while (_at($_[0], T_PIPE)) {
+				_next($_[0]);
+				if (!_at($_[0], T_IDENT)) {
+					_unexpected($_[0], 'a filter name');
+				}
+				push @filters, $_[0]{token}[1];
+				_next($_[0]);
 			}
-			my $filter = $_[0]{token}[1];
-			_next($_[0]);
-			$stmt = ['VMETHOD', $var, $filter];
+
+			# Create VMETHOD or VMETHOD_CHAIN operation
+			if (@filters == 1) {
+				$stmt = ['VMETHOD', $var, $filters[0]];
+			} else {
+				$stmt = ['VMETHOD_CHAIN', $var, \@filters];
+			}
+
 			if (!_at($_[0], T_CLOSE)) {
 				_unexpected($_[0], 'a closing "%]"');
 			}
@@ -832,17 +843,24 @@ sub _stmt
 	} elsif (_at($_[0], T_FUNCALL)) {
 		$stmt = _apply($_[0]);
 
-		# Check for pipe after method call
+		# Check for pipe after method call (supports chaining)
 		if (_at($_[0], T_PIPE)) {
-			_next($_[0]);
-			if (!_at($_[0], T_IDENT)) {
-				_unexpected($_[0], 'a filter name');
+			my @filters;
+			while (_at($_[0], T_PIPE)) {
+				_next($_[0]);
+				if (!_at($_[0], T_IDENT)) {
+					_unexpected($_[0], 'a filter name');
+				}
+				push @filters, $_[0]{token}[1];
+				_next($_[0]);
 			}
-			my $filter = $_[0]{token}[1];
-			_next($_[0]);
 
-			# Wrap the method call in a VMETHOD_RESULT operation
-			$stmt = ['VMETHOD_RESULT', $stmt, $filter];
+			# Wrap the method call with filters
+			if (@filters == 1) {
+				$stmt = ['VMETHOD_RESULT', $stmt, $filters[0]];
+			} else {
+				$stmt = ['VMETHOD_RESULT_CHAIN', $stmt, \@filters];
+			}
 		}
 
 		# Consume the closing %]
@@ -1093,6 +1111,21 @@ sub _eval
 		return;
 	}
 
+	if ($op eq 'VMETHOD_CHAIN') {
+		my $var = $args[0];
+		my $filters = $args[1];
+		my ($v, $ok) = _get($_[0], $var);
+		if ($ok) {
+			# Apply each filter in sequence
+			for my $filter (@$filters) {
+				_fail($vm, "undefined filter '$filter'") unless $FILTERS{$filter};
+				$v = $FILTERS{$filter}->($vm, $v);
+			}
+			$vm->{out} .= $v;
+		}
+		return;
+	}
+
 	if ($op eq 'VMETHOD_RESULT') {
 		# Evaluate the expression (method call or function) and capture output
 		my $out = $vm->{out};
@@ -1104,6 +1137,24 @@ sub _eval
 		# Apply filter to the result
 		_fail($vm, "undefined filter '$args[1]'") unless $FILTERS{$args[1]};
 		$result = $FILTERS{$args[1]}->($vm, $result);
+		$vm->{out} .= $result;
+		return;
+	}
+
+	if ($op eq 'VMETHOD_RESULT_CHAIN') {
+		# Evaluate the expression (method call or function) and capture output
+		my $out = $vm->{out};
+		$vm->{out} = '';
+		_eval($vm, $args[0]);
+		my $result = $vm->{out};
+		$vm->{out} = $out;
+
+		# Apply each filter in sequence
+		my $filters = $args[1];
+		for my $filter (@$filters) {
+			_fail($vm, "undefined filter '$filter'") unless $FILTERS{$filter};
+			$result = $FILTERS{$filter}->($vm, $result);
+		}
 		$vm->{out} .= $result;
 		return;
 	}

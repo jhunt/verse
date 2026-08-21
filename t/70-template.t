@@ -706,4 +706,34 @@ is(_do($src, { text => undef }),
 is(_do($src, { text => "A < C > D" }),
 	"A &lt; C &gt; D", "attr filter does not strip non-tag angle brackets");
 
+########################################################
+# Test filter chaining
+$src = "[% text | collapse | attr %]";
+is(_do($src, { text => "  <b>test</b>  with   spaces  " }),
+	"test with spaces", "filter chaining: collapse | attr");
+
+$src = "[% text | attr | collapse %]";
+is(_do($src, { text => "  <b>test</b>  with   spaces  " }),
+	"test with spaces", "filter chaining: attr | collapse");
+
+$src = "[% text | collapse | uriencode %]";
+is(_do($src, { text => "  hello   world  " }),
+	"hello+world", "filter chaining: collapse | uriencode");
+
+# Chain with method call
+package ChainTest;
+sub new { bless {}, $_[0] }
+sub get_text { return "  <p>Text   here</p>  " }
+
+package main;
+
+my $chain_obj = ChainTest->new();
+$src = "[% obj.get_text() | attr | collapse %]";
+is(_do($src, { obj => $chain_obj }),
+	"Text here", "filter chaining with method call");
+
+$src = "[% text | collapse | attr | uriencode %]";
+is(_do($src, { text => "  <b>A & B</b>  " }),
+	"A+%26amp%3B+B", "filter chaining: three filters");
+
 done_testing;
