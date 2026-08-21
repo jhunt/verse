@@ -99,14 +99,14 @@ sub _sitemap_get_priority
 	return undef unless verse->{site}{sitemap};
 
 	# Try explicit sitemap priority from content
-	if (ref($obj) && $obj->can('attrs')) {
+	if (UNIVERSAL::can($obj, 'attrs')) {
 		my $attrs = $obj->attrs;
 		return $attrs->{sitemap}{priority}
 			if $attrs->{sitemap} && defined $attrs->{sitemap}{priority};
 	}
 
 	# Get default for this content type
-	my $type = ref($obj) && $obj->can('type') ? $obj->type : 'page';
+	my $type = UNIVERSAL::can($obj, 'type') ? $obj->type : 'page';
 	my $defaults = verse->{site}{sitemap}{defaults};
 	return $defaults->{$type}{priority} if $defaults && $defaults->{$type};
 
@@ -121,14 +121,14 @@ sub _sitemap_get_changefreq
 	return undef unless verse->{site}{sitemap};
 
 	# Try explicit changefreq from content
-	if (ref($obj) && $obj->can('attrs')) {
+	if (UNIVERSAL::can($obj, 'attrs')) {
 		my $attrs = $obj->attrs;
 		return $attrs->{sitemap}{changefreq}
 			if $attrs->{sitemap} && $attrs->{sitemap}{changefreq};
 	}
 
 	# Get default for this content type
-	my $type = ref($obj) && $obj->can('type') ? $obj->type : 'page';
+	my $type = UNIVERSAL::can($obj, 'type') ? $obj->type : 'page';
 	my $defaults = verse->{site}{sitemap}{defaults};
 	return $defaults->{$type}{changefreq} if $defaults && $defaults->{$type};
 
@@ -141,7 +141,7 @@ sub _sitemap_get_lastmod
 	my ($obj, $output_path) = @_;
 
 	# Try dated attribute from content
-	if (ref($obj) && $obj->can('dated') && $obj->dated) {
+	if (UNIVERSAL::can($obj, 'dated') && $obj->dated) {
 		return strftime('%Y-%m-%d', localtime($obj->dated));
 	}
 
@@ -159,7 +159,7 @@ sub _sitemap_get_images
 {
 	my ($obj) = @_;
 
-	return [] unless ref($obj) && $obj->can('attrs');
+	return [] unless UNIVERSAL::can($obj, 'attrs');
 
 	my $attrs = $obj->attrs;
 	return $attrs->{sitemap}{images} || []
@@ -212,7 +212,7 @@ sub render
 
 		# Add content file if available
 		for my $item (@$obj) {
-			if (ref($item) && $item->can('file') && $item->file) {
+			if (UNIVERSAL::can($item, 'file') && $item->file) {
 				push @sources, $item->file;
 			}
 		}
@@ -237,7 +237,7 @@ sub render
 
 			my @sources = @$tpls;
 			for my $item (@$obj) {
-				if (ref($item) && $item->can('file') && $item->file) {
+				if (UNIVERSAL::can($item, 'file') && $item->file) {
 					push @sources, $item->file;
 				}
 			}
