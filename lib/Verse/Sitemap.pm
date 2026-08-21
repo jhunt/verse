@@ -3,8 +3,6 @@ package Verse::Sitemap;
 use strict;
 use warnings;
 
-use Verse::Theme qw/writef/;
-
 use base 'Exporter';
 our @EXPORT = qw/
 	sitemap_add
@@ -48,7 +46,12 @@ sub sitemap_generate
 
 	$xml .= '</urlset>' . "\n";
 
-	writef($output_path, $xml);
+	# Write sitemap file
+	open my $fh, ">", $output_path
+		or die "Failed to write sitemap to $output_path: $!\n";
+	binmode $fh, ':utf8';
+	print $fh $xml;
+	close $fh;
 
 	# Clear URLs for next build
 	@URLS = ();
