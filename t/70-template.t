@@ -10,9 +10,16 @@ use lib 'ext';
 BEGIN { use_ok 'Verse::Template'
 		or BAIL_OUT "Could not `use Verse::Template`" }
 
+sub _tokenize {
+	my ($src) = @_;
+	# Strip position metadata (last element) from tokens for testing
+	my $tokens = Verse::Template::_tokenize($src, 'test.tt');
+	return [map { [@$_[0..($#$_ - 1)]] } @$tokens];
+}
+
 sub _parse {
 	my ($src) = @_;
-	Verse::Template::_parse(Verse::Template::_tokenize($src)),
+	Verse::Template::_parse(_tokenize($src, 'test.tt'), 'test.tt', $src),
 }
 sub _do {
 	my ($src, $vars) = @_;
@@ -94,7 +101,7 @@ cmp_deeply([Verse::Template::_i2pf({
 	"infix to postfix should handle precedence levels");
 
 ########################################################
-cmp_deeply(Verse::Template::_tokenize(''),
+cmp_deeply(_tokenize(''),
 	[[Verse::Template::T_EOT]],
 	"tokenizing the empty template (should have no ops)");
 
@@ -105,7 +112,7 @@ is(_do(''), '', "evaluating the template");
 
 ########################################################
 $src = 'a single text block';
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT,$src],
 	 [Verse::Template::T_EOT]],
 	"tokenizing a single text block, with no [% ... %] ops");
@@ -120,7 +127,7 @@ is(_do($src),
 
 ########################################################
 $src = 'a [% type %] block';
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT, 'a '],
 	 [Verse::Template::T_OPEN],
 	 [Verse::Template::T_IDENT, 'type'],
@@ -139,7 +146,7 @@ is(_do($src, { type => 'verse' }),
 
 ########################################################
 $src = 'a [%- type -%] block';
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT, 'a'],
 	 [Verse::Template::T_OPEN],
 	 [Verse::Template::T_IDENT, 'type'],
@@ -164,7 +171,7 @@ is(_do($src, { a => { dotted => { var => 'wins' } } }),
 
 ########################################################
 $src = "[% x = 1 %][% x %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IDENT, 'x'],
 	 [Verse::Template::T_ASSIGN],
@@ -186,7 +193,7 @@ is(_do($src), "1",
 
 ########################################################
 $src = "[% n = 1 %][% n %], [% n = n + 1 %][% n %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IDENT, 'n'],
 	 [Verse::Template::T_ASSIGN],
@@ -211,7 +218,7 @@ cmp_deeply(Verse::Template::_tokenize($src),
 
 ########################################################
 $src = "v: [% if set %]is not [% end %]unset";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT, 'v: '],
 	 [Verse::Template::T_OPEN],
 	 [Verse::Template::T_IF],
@@ -245,7 +252,7 @@ is(_do($src, { set => undef }),
 	"evaluating a simple if-conditional (alternate, explicit undef value)");
 
 $src = "[% if !set %]x[% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IF],
 	 [Verse::Template::T_NOT],
@@ -265,7 +272,7 @@ cmp_deeply(_parse($src),
 
 ########################################################
 $src = "[% if yes %]no[% else %]yes[% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IF],
 	 [Verse::Template::T_IDENT, 'yes'],
@@ -294,7 +301,7 @@ is(_do($src, { yes => 0 }),
 
 ########################################################
 $src = "[% if yes %]sure[% else if no %]nah[% else %]maybe[% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IF],
 	 [Verse::Template::T_IDENT, 'yes'],
@@ -334,7 +341,7 @@ is(_do($src, {}),
 
 ########################################################
 $src = "[% if yes %]sure[% else unless no %]maybe[% else %]nah[% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_IF],
 	 [Verse::Template::T_IDENT, 'yes'],
@@ -374,7 +381,7 @@ is(_do($src, {}),
 
 ########################################################
 $src = "v: [% unless set %]not [% end %]set";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT, 'v: '],
 	 [Verse::Template::T_OPEN],
 	 [Verse::Template::T_UNLESS],
@@ -403,7 +410,7 @@ is(_do($src, { set => 1 }),
 
 ########################################################
 $src = "things:[% for x in list %] ([% x %])[% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_TEXT, 'things:'],
 	 [Verse::Template::T_OPEN],
 	 [Verse::Template::T_FOR],
@@ -434,7 +441,7 @@ is(_do($src, { list => [1,2,3]}),
 
 ########################################################
 $src = "[% for x in l %][% for y in l %][% x %][% y %];[% end %][% end %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_FOR],
 	 [Verse::Template::T_IDENT, 'x'],
@@ -480,7 +487,7 @@ is(_do($src, { l => [1,2,3]}),
 
 ########################################################
 $src = "[% format('test %s', 'value') %]";
-cmp_deeply(Verse::Template::_tokenize($src),
+cmp_deeply(_tokenize($src),
 	[[Verse::Template::T_OPEN],
 	 [Verse::Template::T_FUNCALL, 'format'],
 	 [Verse::Template::T_STRING, 'test %s'],

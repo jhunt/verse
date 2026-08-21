@@ -81,44 +81,45 @@ use constant {
 	T_PIPE    => 35, # | (for vmethods/filters)
 };
 
-my @NAMES = (
-	'(text block)',
-	'opening "[["',
-	'closing "%]"',
-	'"for" keyword',
-	'"in" keyword',
-	'"end" keyword',
-	'"if" keyword',
-	'"unless" keyword',
-	'"else" keyword',
-	'variable name',
-	'regular expression',
-	'string',
-	'number',
-	'"not" / "!" keyword',
-	'"&&" / "and" keyword',
-	'"||" / "or" keyword',
-	'opening "(" parenthesis',
-	'closing ")" parenthesis',
-	'equality "==" operator',
-	'inequality "!=" operator',
-	'greater than ">" operator',
-	'greater than or equal to ">=" operator',
-	'less than "<" operator',
-	'less than or equal to "<=" operator',
-	'pattern match "=~" operator',
-	'pattern un-match "!~" operator',
-	'assignment "=" operator',
-	'"+" addition operator',
-	'"-" subtraction operator',
-	'"*" multiplication operator',
-	'"/" division operator',
-	'"filter" keyword',
-	'"," argument delimiter',
-	'function call',
-	'"asset" keyword',
-	'"|" pipe operator',
-);
+my @NAMES;
+$NAMES[T_TEXT]    = '(text block)';
+$NAMES[T_OPEN]    = 'opening "[["';
+$NAMES[T_CLOSE]   = 'closing "%]"';
+$NAMES[T_FOR]     = '"for" keyword';
+$NAMES[T_IN]      = '"in" keyword';
+$NAMES[T_END]     = '"end" keyword';
+$NAMES[T_IF]      = '"if" keyword';
+$NAMES[T_UNLESS]  = '"unless" keyword';
+$NAMES[T_ELSE]    = '"else" keyword';
+$NAMES[T_IDENT]   = 'variable name';
+$NAMES[T_REGEX]   = 'regular expression';
+$NAMES[T_STRING]  = 'string';
+$NAMES[T_NUMBER]  = 'number';
+$NAMES[T_NOT]     = '"not" / "!" keyword';
+$NAMES[T_AND]     = '"&&" / "and" keyword';
+$NAMES[T_OR]      = '"||" / "or" keyword';
+$NAMES[T_OPAR]    = 'opening "(" parenthesis';
+$NAMES[T_CPAR]    = 'closing ")" parenthesis';
+$NAMES[T_EQ]      = 'equality "==" operator';
+$NAMES[T_NE]      = 'inequality "!=" operator';
+$NAMES[T_GT]      = 'greater than ">" operator';
+$NAMES[T_GE]      = 'greater than or equal to ">=" operator';
+$NAMES[T_LT]      = 'less than "<" operator';
+$NAMES[T_LE]      = 'less than or equal to "<=" operator';
+$NAMES[T_LIKE]    = 'pattern match "=~" operator';
+$NAMES[T_UNLIKE]  = 'pattern un-match "!~" operator';
+$NAMES[T_ASSIGN]  = 'assignment "=" operator';
+$NAMES[T_ADD]     = '"+" addition operator';
+$NAMES[T_SUB]     = '"-" subtraction operator';
+$NAMES[T_MUL]     = '"*" multiplication operator';
+$NAMES[T_DIV]     = '"/" division operator';
+$NAMES[T_FILTER]  = '"filter" keyword';
+$NAMES[T_COMMA]   = '"," argument delimiter';
+$NAMES[T_FUNCALL] = 'function call';
+$NAMES[T_ASSET]   = '"asset" keyword';
+$NAMES[T_PIPE]    = '"|" pipe operator';
+$NAMES[T_ERR]     = 'error token';
+$NAMES[T_EOT]     = 'end of template';
 
 my %FILTERS = (
 	collapse => sub {
@@ -454,12 +455,15 @@ sub _tokenize
 	};
 	TOKEN:
 	for (;;) {
+		my $pos = $lexer->{idx};
 		for my $t (_lex($lexer)) {
 			if ($t->[0] == T_ERR) {
 				my ($line, $col) = _location($src, $lexer->{idx});
 				_fail({ current => $file },
 				      "line $line, column $col: $t->[1]");
 			}
+			# Attach position metadata to token
+			push @$t, $pos;
 			push @tok, $t;
 			last TOKEN if $t->[0] == T_EOT;
 		}
@@ -600,13 +604,23 @@ sub _fail
 	my ($vm, $e) = @_;
 	my $f = $vm->{current} || '(unknown file)';
 	$e ||= 'an unknown error has occurred';
+
+	# If we have source and token position, include line/column
+	if ($vm->{source} && $vm->{token} && defined $vm->{token}[-1]) {
+		my $pos = $vm->{token}[-1];
+		my ($line, $col) = _location($vm->{source}, $pos);
+		die "$f: line $line, column $col: $e.\n";
+	}
+
 	die "$f: $e.\n";
 }
 
 sub _unexpected
 {
 	my ($vm, $wanted) = @_;
-	_fail($vm, "unexpected $NAMES[$vm->{token}[0]], wanted $wanted");
+	my $token_type = $vm->{token}[0];
+	my $token_name = $NAMES[$token_type] || "token type $token_type";
+	_fail($vm, "unexpected $token_name, wanted $wanted");
 }
 
 sub _if
@@ -819,6 +833,7 @@ sub _parse
 		tokens  => $_[0],
 		token   => undef,
 		current => $_[1],
+		source  => $_[2],
 	};
 	_next($parser);
 	return _seq($parser);
@@ -829,7 +844,7 @@ sub _read
 	my ($template) = @_;
 	my $src = slurp($template); defined $src
 		or die "failed to parse $template: $!\n";
-	return _parse(_tokenize($src, $template), $template);
+	return _parse(_tokenize($src, $template), $template, $src);
 }
 
 sub _get
