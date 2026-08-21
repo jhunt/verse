@@ -50,23 +50,40 @@ my $PWD = cwd;
 }
 
 { # rendering w/layout
-	chdir "t/data/root/blog";
+	my $testdir = "t/data/root/blog";
+	# Untaint for -T mode
+	$testdir =~ m{^([-\@\w./ ]+)$} and $testdir = $1;
+
+	chdir $testdir;
 	$Verse::ROOT = cwd;
+	$Verse::ROOT =~ m{^([-\@\w./ ]+)$} and $Verse::ROOT = $1; # untaint
 	Verse::verse(1); # reload
 
 	mkdir "htdocs"; # {site}
+
+	# Clear build cache before first render
+	unlink ".verse/build-cache.yml" if -f ".verse/build-cache.yml";
+
 	Verse::Theme::render({},
 		using  => "test.tt",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
 		"SITE\n", "Rendered with default layout");
 
+	# Delete output and cache to force re-render with different layout
+	unlink "htdocs/test.html";
+	unlink ".verse/build-cache.yml" if -f ".verse/build-cache.yml";
+
 	Verse::Theme::render({},
 		using  => "test.tt",
 		layout => "alt.tt",
 		at     => "{site}/test.html");
 	is(read_file("htdocs/test.html"),
-		"ALT\n", "Rendered with default layout");
+		"ALT\n", "Rendered with alternate layout");
+
+	# Delete output and cache to force re-render without layout
+	unlink "htdocs/test.html";
+	unlink ".verse/build-cache.yml" if -f ".verse/build-cache.yml";
 
 	Verse::Theme::render({},
 		using  => "test.tt",
@@ -75,16 +92,23 @@ my $PWD = cwd;
 	is(read_file("htdocs/test.html"),
 		"from test.tt\n", "Rendered without layout");
 
-	chdir $PWD;
-	qx(rm -fr t/data/root/blog/htdocs);
+	my $safe_pwd = $PWD;
+	$safe_pwd =~ m{^([-\@\w./ ]+)$} and $safe_pwd = $1; # untaint
+	chdir $safe_pwd;
+	local $ENV{PATH} = '/bin:/usr/bin'; # Set safe PATH for -T mode
+	qx(rm -fr t/data/root/blog/htdocs t/data/root/blog/.verse/build-cache.yml);
 }
 
 { # unicode rendering
-	chdir "t/data/root/unicode";
+	my $testdir = "t/data/root/unicode";
+	$testdir =~ m{^([-\@\w./ ]+)$} and $testdir = $1; # untaint
+	chdir $testdir;
 	$Verse::ROOT = cwd;
+	$Verse::ROOT =~ m{^([-\@\w./ ]+)$} and $Verse::ROOT = $1; # untaint
 	Verse::verse(1); # reload
 
 	mkdir "htdocs"; # {site}
+	unlink ".verse/build-cache.yml" if -f ".verse/build-cache.yml";
 
 	my $obj = Verse::Object::Base->read(".verse/data/unicode.yml");
 	is($obj->{__attrs}{title}, '∑', "read in unicode title");
@@ -94,8 +118,11 @@ my $PWD = cwd;
 	is(read_file("htdocs/test.html", binmode => ':utf8'),
 		"var(∑), literal(∑)\n", "Rendered unicode");
 
-	chdir $PWD;
-	qx(rm -fr t/data/root/unicode/htdocs);
+	my $safe_pwd = $PWD;
+	$safe_pwd =~ m{^([-\@\w./ ]+)$} and $safe_pwd = $1; # untaint
+	chdir $safe_pwd;
+	local $ENV{PATH} = '/bin:/usr/bin';
+	qx(rm -fr t/data/root/unicode/htdocs t/data/root/unicode/.verse/build-cache.yml);
 }
 
 done_testing;

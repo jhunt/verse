@@ -1,7 +1,6 @@
 package Verse::Utils;
 
 use Verse::Markdown;
-use Clone qw/clone/;
 use base 'Exporter';
 our @EXPORT = qw/
 	vpath
@@ -11,6 +10,22 @@ our @EXPORT = qw/
 /;
 
 use Verse;
+
+# Simple recursive clone implementation to avoid Clone module dependency
+sub clone
+{
+	my ($data) = @_;
+	return $data unless ref $data;
+
+	if (ref $data eq 'HASH') {
+		return { map { $_ => clone($data->{$_}) } keys %$data };
+	}
+	if (ref $data eq 'ARRAY') {
+		return [ map { clone($_) } @$data ];
+	}
+	# For other refs (CODE, GLOB, etc.), return as-is
+	return $data;
+}
 
 sub vpath
 {

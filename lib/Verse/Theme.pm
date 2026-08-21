@@ -11,7 +11,7 @@ use Verse::Sitemap qw/sitemap_add/;
 use File::Find qw/find/;
 use POSIX qw/strftime/;
 
-use base Exporter;
+use base 'Exporter';
 our @EXPORT = qw/
 	path
 	exist copy dir

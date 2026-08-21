@@ -24,8 +24,16 @@ sub template
 	}
 	return $vars->{content} if !$outfile;
 
-	open my $fh, ">", $outfile
-		or die "failed to open $outfile for writing: $!\n";
+	# Untaint outfile path for -T mode
+	my $safe_outfile = $outfile;
+	if ($outfile =~ m{^([-\@\w./ ]+)$}) {
+		$safe_outfile = $1;
+	} else {
+		die "Unsafe output file path: $outfile\n";
+	}
+
+	open my $fh, ">", $safe_outfile
+		or die "failed to open $safe_outfile for writing: $!\n";
 	binmode $fh, ':utf8';
 	print $fh "$vars->{content}\n";
 	close $fh;

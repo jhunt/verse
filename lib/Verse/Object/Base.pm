@@ -43,12 +43,20 @@ sub read
 	my ($class, $file) = @_;
 	return unless -r $file and -f $file;
 
-	open my $fh, "<:encoding(UTF-8)", $file
-		or croak "Failed to open $file: $!\n";
+	# Untaint file path for -T mode (allow reasonable file paths)
+	my $untainted_file = $file;
+	if ($file =~ m{^([-\@\w./]+)$}) {
+		$untainted_file = $1;
+	} else {
+		croak "Unsafe file path: $file\n";
+	}
+
+	open my $fh, "<:encoding(UTF-8)", $untainted_file
+		or croak "Failed to open $untainted_file: $!\n";
 	my ($self, @rest) = $class->parse(do { local $/; <$fh> });
 	close $fh;
 
-	$self->{__file} = $file;
+	$self->{__file} = $untainted_file;
 	return wantarray ? ($self, @rest) : $self;
 }
 

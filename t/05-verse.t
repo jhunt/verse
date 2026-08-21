@@ -46,7 +46,7 @@ EOF
 			site => {
 				title  => 'Default Settings',
 				theme  => 'default', # DEFAULT
-				buster => ignore,
+				# buster no longer auto-set (can still be set manually in site.yml)
 			},
 			paths => { # ALL DEFAULT
 				site  => '/u/sites/example.com/htdocs',
@@ -72,7 +72,7 @@ EOF
 				title  => 'Overrides',
 				url    => 'http://www.example.com',
 				theme  => 'override',
-				buster => ignore,
+				# buster no longer auto-set (can still be set manually in site.yml)
 			},
 			paths => {
 				site  => '/u/sites/example.com/site_root',

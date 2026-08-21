@@ -2,7 +2,6 @@ package Verse;
 
 use strict;
 use warnings;
-use Clone qw/clone/;
 use Cwd qw/getcwd/;
 use Carp;
 
