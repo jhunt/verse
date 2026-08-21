@@ -5,7 +5,7 @@ use warnings;
 use Verse qw();
 use Verse::Utils;
 use Date::Parse qw/strptime/;
-use Digest::SHA1 qw/sha1_hex/;
+use Digest::SHA qw/sha1_hex/;
 use Encode qw/encode_utf8/;
 use POSIX qw/strftime/;
 use base 'Exporter';
