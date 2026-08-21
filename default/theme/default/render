@@ -44,4 +44,8 @@ for my $post (@all) {
 		at    => "{site}/writings/{permalink}.html";
 }
 
+# Generate sitemap
+use Verse::Sitemap;
+sitemap_generate(path("{site}/sitemap.xml"));
+
 1;

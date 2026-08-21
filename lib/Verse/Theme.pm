@@ -7,7 +7,9 @@ use Verse::Object::Page;
 use Verse::Object::Gallery;
 use Verse::Jump;
 use Verse::Template;
+use Verse::Sitemap qw/sitemap_add/;
 use File::Find qw/find/;
+use POSIX qw/strftime/;
 
 use base Exporter;
 our @EXPORT = qw/
@@ -70,6 +72,86 @@ sub dir
 	run("mkdir -p ".path($_)) for @_;
 }
 
+########################################
+# Sitemap helper functions
+
+sub _sitemap_get_priority
+{
+	my ($obj) = @_;
+
+	# Check if sitemap is configured
+	return undef unless verse->{site}{sitemap};
+
+	# Try explicit sitemap priority from content
+	if (ref($obj) && $obj->can('attrs')) {
+		my $attrs = $obj->attrs;
+		return $attrs->{sitemap}{priority}
+			if $attrs->{sitemap} && defined $attrs->{sitemap}{priority};
+	}
+
+	# Get default for this content type
+	my $type = ref($obj) && $obj->can('type') ? $obj->type : 'page';
+	my $defaults = verse->{site}{sitemap}{defaults};
+	return $defaults->{$type}{priority} if $defaults && $defaults->{$type};
+
+	# Overall default
+	return 0.5;
+}
+
+sub _sitemap_get_changefreq
+{
+	my ($obj) = @_;
+
+	return undef unless verse->{site}{sitemap};
+
+	# Try explicit changefreq from content
+	if (ref($obj) && $obj->can('attrs')) {
+		my $attrs = $obj->attrs;
+		return $attrs->{sitemap}{changefreq}
+			if $attrs->{sitemap} && $attrs->{sitemap}{changefreq};
+	}
+
+	# Get default for this content type
+	my $type = ref($obj) && $obj->can('type') ? $obj->type : 'page';
+	my $defaults = verse->{site}{sitemap}{defaults};
+	return $defaults->{$type}{changefreq} if $defaults && $defaults->{$type};
+
+	# Overall default
+	return 'monthly';
+}
+
+sub _sitemap_get_lastmod
+{
+	my ($obj, $output_path) = @_;
+
+	# Try dated attribute from content
+	if (ref($obj) && $obj->can('dated') && $obj->dated) {
+		return strftime('%Y-%m-%d', localtime($obj->dated));
+	}
+
+	# Try output file mtime
+	if ($output_path && -f $output_path) {
+		my $mtime = (stat($output_path))[9];
+		return strftime('%Y-%m-%d', localtime($mtime)) if $mtime;
+	}
+
+	# Default to current date
+	return strftime('%Y-%m-%d', localtime());
+}
+
+sub _sitemap_get_images
+{
+	my ($obj) = @_;
+
+	return [] unless ref($obj) && $obj->can('attrs');
+
+	my $attrs = $obj->attrs;
+	return $attrs->{sitemap}{images} || []
+		if $attrs->{sitemap} && $attrs->{sitemap}{images};
+
+	return [];
+}
+
 sub render
 {
 	my ($obj, %opt) = @_;
@@ -104,6 +186,29 @@ sub render
 		unshift @$tpls, $opt{layout};
 	}
 	template($tpls, \%vars, verse->{paths}, $path);
+
+	# Register URL in sitemap for HTML files
+	if ($opt{at} && $opt{at} =~ /\.html$/ && verse->{site}{canon}) {
+		my $url_path = $opt{at};
+		$url_path =~ s/^.*htdocs//;  # Strip to web path
+
+		# Get the content object (first element that has a uuid method)
+		my $content_obj;
+		for my $item (@$obj) {
+			if (ref($item) && UNIVERSAL::can($item, 'uuid')) {
+				$content_obj = $item;
+				last;
+			}
+		}
+
+		sitemap_add(
+			loc        => verse->{site}{canon} . $url_path,
+			lastmod    => _sitemap_get_lastmod($content_obj, $path),
+			priority   => _sitemap_get_priority($content_obj),
+			changefreq => _sitemap_get_changefreq($content_obj),
+			images     => _sitemap_get_images($content_obj),
+		);
+	}
 }
 
 sub blog    { Verse::Object::Blog }

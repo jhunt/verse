@@ -40,6 +40,20 @@ site:
   #    app_id: 123456789
   #    author: https://www.facebook.com/YOURID
 
+  # Sitemap defaults (for sitemap.xml generation)
+  # Uncomment to customize priority and changefreq for different content types
+  #sitemap:
+  #  defaults:
+  #    page:
+  #      priority: 0.7
+  #      changefreq: monthly
+  #    article:
+  #      priority: 0.8
+  #      changefreq: weekly
+  #    index:
+  #      priority: 1.0
+  #      changefreq: daily
+
 
 # P.S. If you want to get started adding content to your site,
 # you'll be interested in the files under data/:
@@ -47,6 +61,16 @@ site:
 #  - data/pages - Standalone pages (index, About, etc.)
 #  - data/blog  - Articles in a weblog
 #
+# You can add sitemap and meta attributes to any content file:
+#
+#  sitemap:
+#    priority: 0.9
+#    changefreq: weekly
+#    images:
+#      - /images/my-image.jpg
+#  meta:
+#    description: "Custom description for this page"
+#    image: /images/og-custom.jpg
 #
 # Happy Hacking!
 # - The Verse Team
