@@ -204,8 +204,11 @@ sub _lex
 
 						# Find end of comment %]
 						my $comment_end = index($_[0]{src}, '%]', $comment_start);
-						die "unterminated comment starting at position " . ($_[0]{idx}) . "\n"
-							if $comment_end < 0;
+						if ($comment_end < 0) {
+							my ($line, $col) = _location($_[0]{src}, $i - 1);
+							my $file = $_[0]{file} || '(unknown template)';
+							die "$file: line $line, column $col: unterminated comment.\n";
+						}
 
 						# Check for whitespace trimming -%]
 						my $trim_right = 0;
@@ -415,21 +418,45 @@ sub _lex
 	return [T_ERR, 'unrecognized token ('.substr($_[0]{src}, $_[0]{idx}, 5).'...)'];
 }
 
+sub _location
+{
+	my ($src, $pos) = @_;
+	my $line = 1;
+	my $col = 1;
+
+	for (my $i = 0; $i < $pos && $i < length($src); $i++) {
+		if (substr($src, $i, 1) eq "\n") {
+			$line++;
+			$col = 1;
+		} else {
+			$col++;
+		}
+	}
+
+	return ($line, $col);
+}
+
 sub _tokenize
 {
-	my ($src) = @_;
+	my ($src, $file) = @_;
+	$file ||= '(unknown template)';
 
 	my @tok;
 	my $lexer = {
-		lit => 1,
-		src => $src,
-		idx => 0,
-		len => length($src),
+		lit  => 1,
+		src  => $src,
+		idx  => 0,
+		len  => length($src),
+		file => $file,
 	};
 	TOKEN:
 	for (;;) {
 		for my $t (_lex($lexer)) {
-			_fail({ current => 'FIXME' }, $t->[1]) if $t->[0] == T_ERR;
+			if ($t->[0] == T_ERR) {
+				my ($line, $col) = _location($src, $lexer->{idx});
+				_fail({ current => $file },
+				      "line $line, column $col: $t->[1]");
+			}
 			push @tok, $t;
 			last TOKEN if $t->[0] == T_EOT;
 		}
@@ -786,7 +813,7 @@ sub _read
 	my ($template) = @_;
 	my $src = slurp($template); defined $src
 		or die "failed to parse $template: $!\n";
-	return _parse(_tokenize($src), $template);
+	return _parse(_tokenize($src, $template), $template);
 }
 
 sub _get
