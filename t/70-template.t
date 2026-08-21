@@ -679,4 +679,31 @@ $src = "[% article.get_text() | collapse %]";
 is(_do($src, { article => $article }),
 	"spaces everywhere", "method call with pipe filter");
 
+########################################################
+# Test attr filter
+$src = "[% text | attr %]";
+is(_do($src, { text => "Hello <b>World</b>" }),
+	"Hello World", "attr filter strips HTML tags");
+
+is(_do($src, { text => "A & B" }),
+	"A &amp; B", "attr filter escapes ampersands");
+
+is(_do($src, { text => "A < B > C" }),
+	"A &lt; B &gt; C", "attr filter escapes angle brackets");
+
+is(_do($src, { text => 'Say "hello"' }),
+	"Say &quot;hello&quot;", "attr filter escapes double quotes");
+
+is(_do($src, { text => "Say 'goodbye'" }),
+	"Say &#39;goodbye&#39;", "attr filter escapes single quotes");
+
+is(_do($src, { text => "<p>Text & \"more\"</p>" }),
+	"Text &amp; &quot;more&quot;", "attr filter strips tags and escapes entities");
+
+is(_do($src, { text => undef }),
+	"", "attr filter handles undefined input");
+
+is(_do($src, { text => "A < C > D" }),
+	"A &lt; C &gt; D", "attr filter does not strip non-tag angle brackets");
+
 done_testing;

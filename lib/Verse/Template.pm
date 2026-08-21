@@ -150,6 +150,21 @@ my %FILTERS = (
 		$_[1] =~ s/\+/ /g;
 		return $_[1];
 	},
+
+	attr => sub {
+		my (undef, $in) = @_;
+		return '' unless defined $in;
+		# Strip HTML tags (opening, closing, and self-closing)
+		# Match tags that start with < followed by letter or / or !
+		$in =~ s/<\/?[a-zA-Z][^>]*>//g;
+		# Escape HTML entities for safe use in attributes
+		$in =~ s/&/&amp;/g;
+		$in =~ s/</&lt;/g;
+		$in =~ s/>/&gt;/g;
+		$in =~ s/"/&quot;/g;
+		$in =~ s/'/&#39;/g;
+		return $in;
+	},
 );
 
 my %FUNCS = (
@@ -1252,6 +1267,15 @@ Convert markdown text to HTML.
 =item C<cdata>
 
 Wrap content in a CDATA section.
+
+=item C<attr>
+
+Sanitize text for safe use in HTML attributes. This filter strips all HTML
+tags and escapes HTML entities (C<&>, C<< < >>, C<< > >>, C<">, C<'>).
+Particularly useful for meta tags and other HTML attributes where you want
+to include user content or descriptions that might contain HTML.
+
+    <meta property="og:description" content="[% description | attr %]">
 
 =back
 
