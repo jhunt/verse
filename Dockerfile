@@ -12,7 +12,7 @@ RUN ./pack $VERSION && cp verse-* /dist/verse \
  && chmod 0755 /dist/*
 
 FROM ubuntu:18.04
-MAINTAINER James Hunt <james@huntprod.com>
+LABEL maintainer="James Hunt <james@huntprod.com>"
 
 RUN apt-get update \
  && apt-get install -y make cpanminus build-essential git curl \
