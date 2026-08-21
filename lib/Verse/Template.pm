@@ -189,6 +189,48 @@ sub _lex
 				last if $i >= $_[0]{len};
 
 				if (substr($_[0]{src}, $i, 1) eq '%') {
+					# Check for comment [%# ... %]
+					if (substr($_[0]{src}, $i+1, 1) eq '#') {
+						my $lit = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx} - 1);
+
+						# Check for whitespace trimming [%#-
+						my $trim_left = 0;
+						my $comment_start = $i + 2;
+						if (substr($_[0]{src}, $comment_start, 1) eq '-') {
+							$trim_left = 1;
+							$comment_start++;
+							$lit =~ s/\s+$//;
+						}
+
+						# Find end of comment %]
+						my $comment_end = index($_[0]{src}, '%]', $comment_start);
+						die "unterminated comment starting at position " . ($_[0]{idx}) . "\n"
+							if $comment_end < 0;
+
+						# Check for whitespace trimming -%]
+						my $trim_right = 0;
+						if (substr($_[0]{src}, $comment_end - 1, 1) eq '-') {
+							$trim_right = 1;
+							$comment_end--;
+						}
+
+						# Skip past the comment and %]
+						$_[0]{idx} = $comment_end + ($trim_right ? 3 : 2);
+
+						# Trim leading whitespace on next literal if needed
+						if ($trim_right && $_[0]{idx} < $_[0]{len}) {
+							while ($_[0]{idx} < $_[0]{len} &&
+							       substr($_[0]{src}, $_[0]{idx}, 1) =~ m/^\s/) {
+								$_[0]{idx}++;
+							}
+						}
+
+						$_[0]{lit} = 1;
+
+						# Return any literal text before the comment
+						return $lit ? [T_TEXT, $lit] : _lex($_[0]);
+					}
+
 					my $lit = substr($_[0]{src}, $_[0]{idx}, $i - $_[0]{idx} - 1);
 
 					if (substr($_[0]{src}, $i+1, 1) eq '-') {
@@ -998,6 +1040,16 @@ and everything outside of that is considered a literal text block:
 
     This gets printed verbatim
     var1 = [% var1 %]
+
+Comments can be embedded using C<[%# ... %]> syntax:
+
+    [%# This is a comment and will not appear in output %]
+    [% name = "Alice" %][%# Set a variable %]
+    Hello [% name %]
+
+Comments support whitespace trimming with C<-> characters:
+
+    Line 1[%#- This comment trims surrounding whitespace -%]Line 2
 
 It also supports conditionals:
 
