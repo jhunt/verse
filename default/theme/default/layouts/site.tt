@@ -36,7 +36,7 @@
 <title>[% site.title %]</title>
 
 [% end %]
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/[% asset 'style.css' %]">
 <link rel="alternate home" type="application/rss+xml" title="[% site.title %] - RSS feed" href="[% site.url %]/feed.xml">
 </head>
 <body>

@@ -43,8 +43,9 @@ sub parse_config_string
 	$cfg->{paths}{theme} = $cfg->{paths}{root}."/theme/".$cfg->{site}{theme}
 		unless exists $cfg->{paths}{theme};
 
-	$cfg->{site}{buster} = time
-		unless exists $cfg->{site}{buster};
+	# Note: buster can still be set manually in site.yml if needed,
+	# but we no longer set it automatically to time. Instead, use the
+	# [% asset "path" %] keyword in templates for content-based cache busting.
 
 	$cfg;
 }
