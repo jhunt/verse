@@ -9,6 +9,8 @@ our @EXPORT = qw/
 	sitemap_generate
 /;
 
+use URI;
+
 our @URLS = ();
 
 sub sitemap_add
@@ -20,13 +22,15 @@ sub sitemap_add
 
 sub sitemap_generate
 {
-	my ($output_path) = @_;
+	my ($output_path, $filter_sub) = @_;
+	$filter_sub = $filter_sub or sub { 1 };
 
 	my $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 	$xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
 	$xml .= '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
 
 	for my $url (@URLS) {
+		next unless $filter_sub->(URI->new($url->{loc}));
 		$xml .= '  <url>' . "\n";
 		$xml .= '    <loc>' . _xml_escape($url->{loc}) . '</loc>' . "\n";
 		$xml .= '    <lastmod>' . $url->{lastmod} . '</lastmod>' . "\n" if $url->{lastmod};

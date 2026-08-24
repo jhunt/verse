@@ -248,9 +248,12 @@ sub render
 	}
 
 	# Register URL in sitemap for HTML files
-	if ($opt{at} && $opt{at} =~ /\.html$/ && verse->{site}{canon}) {
-		my $url_path = $opt{at};
+	if ($path && $path =~ /\.html$/ && verse->{site}{canon}) {
+		my $url_path = $path;
 		$url_path =~ s/^.*htdocs//;  # Strip to web path
+		$url_path =~ s@^/+@@; # Strip leading '/'
+		$url_path =~ s@/index.html$@/@;
+		$url_path =~ s@^index.html$@@;
 
 		# Get the content object (first element that has a uuid method)
 		my $content_obj;
